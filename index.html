@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEM STORE | Product Management System</title>
+    <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs" type="module"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #17a2b8;
+            --primary-dark: #128496;
+            --secondary-color: #320f44;
+            --secondary-light: #4a1a62;
+            --accent-color: #ff6b6b;
+            --text-light: rgba(255, 255, 255, 0.9);
+            --text-lighter: rgba(255, 255, 255, 0.7);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-light));
+            color: white;
+            overflow: hidden;
+        }
+
+        .center-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .brand-container {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .brand-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 0 20px rgba(23, 162, 184, 0.8);
+            margin-bottom: 0.5rem;
+            letter-spacing: 4px;
+            background: linear-gradient(to right, var(--primary-color), #6dd5ed);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            display: inline-block;
+        }
+
+        .brand-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, var(--primary-color), transparent);
+        }
+
+        .subtext {
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-lighter);
+            font-size: 1rem;
+            max-width: 400px;
+            line-height: 1.5;
+            margin-top: 0.5rem;
+        }
+
+        .animation-container {
+            width: 280px;
+            height: 280px;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        dotlottie-player {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 15px rgba(23, 162, 184, 0.5));
+        }
+
+        .loading-container {
+            margin-top: 1.5rem;
+            height: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-dots {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 8px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            margin: 0 3px;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); } 
+            40% { transform: scale(1); }
+        }
+
+        .progress-bar {
+            width: 200px;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, var(--primary-color), #6dd5ed);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        /* Particles and decorations */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: float linear infinite;
+            filter: blur(1px);
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(20px, -20px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        .science-icon {
+            position: absolute;
+            font-size: 1.8rem;
+            color: white;
+            opacity: 0.5;
+            animation: float-icon linear infinite;
+            filter: drop-shadow(0 0 5px rgba(23, 162, 184, 0.5));
+        }
+
+        @keyframes float-icon {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(15px, -15px) rotate(10deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        .corner-decoration {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border: 2px solid rgba(23, 162, 184, 0.3);
+            z-index: 0;
+        }
+
+        .corner-decoration.top-left {
+            top: -75px;
+            left: -75px;
+            border-right: none;
+            border-bottom: none;
+            border-radius: 10px 0 0 0;
+        }
+
+        .corner-decoration.bottom-right {
+            bottom: -75px;
+            right: -75px;
+            border-left: none;
+            border-top: none;
+            border-radius: 0 0 10px 0;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .brand-title {
+                font-size: 2.2rem;
+                letter-spacing: 2px;
+            }
+            
+            .subtext {
+                font-size: 0.9rem;
+                max-width: 300px;
+            }
+            
+            .animation-container {
+                width: 220px;
+                height: 220px;
+            }
+            
+            .loading-text {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .brand-title {
+                font-size: 1.8rem;
+            }
+            
+            .animation-container {
+                width: 180px;
+                height: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="corner-decoration top-left"></div>
+    <div class="corner-decoration bottom-right"></div>
+    
+    <div class="center-container">
+        <div class="brand-container">
+            <h1 class="brand-title">STEM STORE</h1>
+            <p class="subtext">Advanced Product Management System for STEM Education Resources</p>
+        </div>
+        
+        <div class="animation-container">
+            <dotlottie-player
+            src="https://lottie.host/embed/5b2a96e5-831f-4e3a-b4d0-04bb3e8b9b3d/6XvQZtYDsU.json"
+            background="transparent"
+            speed="1"
+            style="width: 300px; height: 300px"
+            loop
+            autoplay>
+        </dotlottie-player>
+        </div>
+
+        <div class="loading-container">
+            <div class="loading-text">
+                <span id="loading-message">Initializing System</span>
+                <div class="loading-dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced particle system
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const size = Math.random() * 8 + 2;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Position randomly on screen
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                particle.style.left = `${x}%`;
+                particle.style.top = `${y}%`;
+                
+                const duration = Math.random() * 20 + 10;
+                particle.style.animationDuration = `${duration}s`;
+                
+                // Random opacity
+                particle.style.opacity = Math.random() * 0.5 + 0.3;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Enhanced science icons with more variety
+        function createScienceIcons() {
+            const particlesContainer = document.getElementById('particles');
+            const icons = [
+                '🧪', '🔬', '⚗️', '🧫', '🧮', '🔭', '💻', '📊',
+                '🧲', '🔋', '💡', '📡', '🖥️', '📱', '🛰️', '🔌'
+            ];
+            const iconCount = 12;
+            
+            for (let i = 0; i < iconCount; i++) {
+                const icon = document.createElement('div');
+                icon.classList.add('science-icon');
+                icon.textContent = icons[Math.floor(Math.random() * icons.length)];
+                
+                // Position in a circular pattern around the center
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 200 + 100;
+                const x = 50 + Math.cos(angle) * distance;
+                const y = 50 + Math.sin(angle) * distance;
+                
+                icon.style.left = `${x}%`;
+                icon.style.top = `${y}%`;
+                
+                const duration = Math.random() * 25 + 15;
+                icon.style.animationDuration = `${duration}s`;
+                
+                const delay = Math.random() * 10;
+                icon.style.animationDelay = `${delay}s`;
+                
+                // Random size
+                const size = Math.random() * 0.5 + 1;
+                icon.style.transform = `scale(${size})`;
+                
+                particlesContainer.appendChild(icon);
+            }
+        }
+
+        // Initialize everything when window loads
+        window.onload = function() {
+            createParticles();
+            createScienceIcons();
+            
+            // Loading messages with more variety
+            const messages = [
+                "Initializing System",
+                "Loading Inventory Database",
+                "Analyzing Product Data",
+                "Preparing Dashboard Interface",
+                "Connecting Cloud Services",
+                "Optimizing Performance",
+                "Finalizing Configuration",
+                "Loading STEM Resources",
+                "Preparing Reports Module",
+                "Almost Ready..."
+            ];
+            
+            let currentIndex = 0;
+            const messageElement = document.getElementById('loading-message');
+            const progressFill = document.getElementById('progress-fill');
+            
+            // Update progress bar
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10 + 5;
+                if (progress > 100) progress = 100;
+                progressFill.style.width = `${progress}%`;
+                
+                if (progress === 100) {
+                    clearInterval(progressInterval);
+                }
+            }, 300);
+            
+            // Rotate through loading messages
+            const messageInterval = setInterval(() => {
+                currentIndex = (currentIndex + 1) % messages.length;
+                messageElement.textContent = messages[currentIndex];
+                
+                // Change to final message when progress is complete
+                if (progress === 100) {
+                    messageElement.textContent = "Ready! Redirecting...";
+                    clearInterval(messageInterval);
+                }
+            }, 1500);
+            
+            // Redirect after 6 seconds (or when progress completes)
+            setTimeout(function(){
+                window.location.href = "index2.php";
+            }, 6000);
+        };
+    </script>
+</body>
+</html>

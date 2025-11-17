@@ -1,0 +1,265 @@
+/* Main Theme Colors */
+:root {
+    --primary-color: #320F44;    /* Main purple */
+    --primary-hover: #250a33;    /* Darker purple */
+    --secondary-color: #320F44;  /* Same as primary */
+    --white: #ffffff;            /* White */
+    --light-gray: #f8f9fa;       /* Very light gray for backgrounds */
+    --dark-color: #212529;       /* Dark text */
+}
+
+/* Sidebar Styling */
+.sidenav {
+    background: var(--white) !important;
+    color: var(--primary-color) !important;
+    box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.3s ease;
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Navigation Links */
+.sidenav .nav-link {
+    color: var(--primary-color) !important;
+    transition: all 0.3s ease;
+    padding: 0.75rem 1.5rem !important;
+    margin: 0.25rem 1rem;
+    border-radius: 4px;
+}
+
+.sidenav .nav-link:hover, 
+.sidenav .nav-link.active {
+    background-color: rgba(50, 15, 68, 0.05) !important;
+    color: var(--primary-color) !important;
+}
+
+.sidenav .nav-link i {
+    color: var(--primary-color) !important;
+    opacity: 0.8;
+}
+
+/* Logo and Brand */
+.sidenav .sidenav-header {
+    background: var(--white) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 1.5rem 1rem 1rem !important;
+}
+
+.sidenav .navbar-brand {
+    color: var(--primary-color) !important;
+    font-weight: 700;
+}
+
+.sidenav .sidenav-header img {
+    filter: none !important;
+}
+
+.sidenav .nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    transition: all 0.3s ease;
+}
+
+.sidenav .nav-link:hover, 
+.sidenav .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+}
+
+/* Top Navigation */
+.navbar-main {
+    background: var(--white) !important;
+    box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.1) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 0;
+}
+
+.navbar-main .container-fluid {
+    background: var(--white) !important;
+}
+
+.navbar-main .nav-link {
+    color: var(--primary-color) !important;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+}
+
+.btn-outline-primary {
+    color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    background: transparent;
+}
+
+.btn-outline-primary:hover, .btn-outline-primary:focus {
+    background-color: var(--primary-color) !important;
+    color: var(--white) !important;
+}
+
+/* Cards */
+.card {
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-radius: 4px !important;
+    background: var(--white) !important;
+}
+
+.card-header {
+    background-color: var(--white) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+    color: var(--primary-color) !important;
+}
+
+.card-body {
+    background: var(--white) !important;
+}
+
+/* Tables */
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background-color: var(--primary-color) !important;
+    color: var(--white) !important;
+    border: none !important;
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.75rem 1rem !important;
+}
+
+.table > :not(:last-child) > :last-child > * {
+    border-bottom-color: rgba(0, 0, 0, 0.05);
+}
+
+.table > :not(caption) > * > * {
+    padding: 1rem 1.5rem;
+    border-bottom-width: 1px;
+}
+
+.table-hover > tbody > tr:hover > * {
+    --bs-table-accent-bg: rgba(22, 170, 211, 0.05) !important;
+}
+
+/* Form Controls */
+.form-control, .form-select {
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-radius: 4px !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.9rem !important;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 0.1rem rgba(50, 15, 68, 0.25) !important;
+}
+
+.input-group-text {
+    background-color: var(--light-gray);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: var(--dark-color);
+}
+
+/* Badges */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    border-radius: 4px;
+    font-size: 0.75em;
+}
+
+.badge-primary {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+}
+
+.badge-success, .badge-info, .badge-warning, .badge-danger {
+    background-color: var(--light-gray) !important;
+    color: var(--dark-color) !important;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35em 0.8em;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.status-badge i {
+    margin-right: 0.35rem;
+    font-size: 0.7em;
+}
+
+.status-pending {
+    background-color: rgba(251, 99, 64, 0.1);
+    color: var(--warning);
+}
+
+.status-approved {
+    background-color: rgba(45, 206, 137, 0.1);
+    color: var(--success);
+}
+
+.status-rejected {
+    background-color: rgba(245, 54, 92, 0.1);
+    color: var(--danger);
+}
+
+/* Custom Backgrounds */
+.bg-gradient-primary {
+    background: linear-gradient(87deg, var(--primary-color) 0, #1a73e8 100%) !important;
+}
+
+/* Footer */
+.footer {
+    background-color: var(--secondary-color) !important;
+    color: white !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #1285a7;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .sidenav {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+    }
+    
+    .sidenav.show {
+        transform: translateX(0);
+    }
+}
