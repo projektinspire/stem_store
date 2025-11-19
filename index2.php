@@ -58,15 +58,11 @@ $payableAmount = $cartSubtotal;
   <title>
   STEM STORE
   </title>
-  <!--     Fonts and icons     -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
-  <!-- Nucleo Icons -->
   <link href="./assets/css/nucleo-icons.css" rel="stylesheet" />
   <link href="./assets/css/nucleo-svg.css" rel="stylesheet" />
-  <!-- Font Awesome Icons -->
   <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
-  <!-- CSS Files -->
   <link id="pagestyle" href="./assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
   <link rel="stylesheet" href="./assets/css/theme.css" />
 
@@ -77,7 +73,6 @@ $payableAmount = $cartSubtotal;
 <?php include "pages/side_navigations/navigations.php" ?>
 
 <main class="main-content position-relative border-radius-lg">
-    <!-- Navbar -->
     <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur" data-scroll="false">
         <div class="container-fluid py-1 px-3">
             <p style="color:white;">
@@ -104,23 +99,17 @@ $payableAmount = $cartSubtotal;
                 // Include the database connection file
                 include 'connection.php';
 
-                // Initialize the search keyword for products
-                $searchKeyword = isset($_GET['search']) ? $_GET['search'] : '';
-
                 // Define the $isTaxIncluded variable with a default value
                 $isTaxIncluded = false;
 
-                // SQL query to select products
+                // SQL query to select ALL products for the modal so Autosearch works
                 $sql = "SELECT ID, ProductName, Image, prod_price, 
                         Quantity, Description, AddedDate 
                         FROM products 
-                        WHERE ProductName LIKE ? 
                         ORDER BY AddedDate DESC";
 
                 // Prepare and execute the query
                 $stmt = $conn->prepare($sql);
-                $searchParam = "%$searchKeyword%";
-                $stmt->bind_param('s', $searchParam);
                 $stmt->execute();
                 $result = $stmt->get_result();
 
@@ -146,8 +135,8 @@ $payableAmount = $cartSubtotal;
                     }
                 }
 
-                // Close the database connection
-                $conn->close();
+                // Close the database connection (It will be opened again later in the orders section)
+                $conn->close(); 
                 ?>
 
                 <li class="nav-item d-flex align-items-center">
@@ -157,14 +146,11 @@ $payableAmount = $cartSubtotal;
                         </button>
                     </a>
 
-                    <!-- Order Dropdown Menu -->
                     <ul class="dropdown-menu cart-dropdown-menu" id="cartDropdown" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 450px; max-width: 90vw; height: auto; max-height: 80vh; overflow-y: auto; padding: 20px;">
                         <li class="cart-summary mb-2">
-                            <!-- Customer Section -->
                             <div id="customerSection" class="mt-3">
                                 <button class="btn btn-primary mb-2" onclick="toggleCustomerForm()">+ Add Store keeper</button>
     
-                                <!-- Customer Selection Dropdown -->
                                 <div id="customerSelection">
                                     <label for="customerDropdown" class="fw-bold">Select Store keeper:</label>
                                     <select name="customerID" id="customerDropdown" class="form-select" required>
@@ -177,7 +163,6 @@ $payableAmount = $cartSubtotal;
                                     </select>
                                 </div>
 
-                                <!-- Add Customer Form -->
                                 <form action="add_customer.php" method="post" id="addCustomerForm" style="display:none;" class="mt-2">
                                     <input type="text" name="Store keeper" placeholder="Store keeper" required class="form-control mb-2">
                                     <div class="text-center">
@@ -187,12 +172,10 @@ $payableAmount = $cartSubtotal;
                                 </form>
                             </div>
 
-                            <!-- Add Products Section -->
                             <div id="addToCartSection" class="mt-3">
                                 <button class="btn btn-success" style="background-color:rgb(7, 166, 197); border: none;" onclick="toggleCartVisibility(false); openProductSelectionModal()">+ Add Products</button>
                             </div>
 
-                            <!-- Cart Items -->
                             <ul class="cart-items list-group mb-3">
                                 <?php if (isset($uniqueItemCount) && $uniqueItemCount > 0): ?>
                                     <?php foreach ($cartItems as $item): ?>
@@ -234,35 +217,26 @@ $payableAmount = $cartSubtotal;
                                 <?php endif; ?>
                             </ul>
 
-                            <!-- Clear Cart Button -->
-                            <div class="d-flex justify-content-between mb-3">
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
                                 <form action="pages/clear_cart.php" method="POST" class="d-inline">
                                     <button type="submit" class="btn btn-danger btn-sm" style="background-color: #C94F60; border: none; color: white;">Clear Cart</button>
                                 </form>
-                            </div>
 
-                            <!-- Order Form -->
-                            <form action="submit_order.php" method="post" id="orderForm">
-                                <!-- Hidden Inputs for Cart Data and Order Submission -->
-                                <input type="hidden" name="cartItems" value="<?php echo htmlspecialchars(json_encode($cartItems ?? [])); ?>">
-                                <input type="hidden" name="totalPrice" id="totalPrice" value="<?php echo htmlspecialchars($payableAmount ?? 0); ?>">
-                                <input type="hidden" name="includeTax" id="includeTaxHidden" value="<?php echo $isTaxIncluded ? '1' : '0'; ?>">
-                                <input type="hidden" name="customerID" id="selectedCustomerID">
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-secondary btn-sm" style="background-color: #C94F60; border: none;" onclick="toggleCartVisibility(false)">Cancel</button>
 
-                                <!-- Cart Actions -->
-                                <div class="d-flex justify-content-between mt-2">
-                                    <button type="submit" name="hold" class="btn btn-warning btn-sm">Hold Order</button>
-                                    <button type="submit" name="submit" class="btn btn-success btn-sm" style="background-color: #16A645; border: none;">Proceed</button>
+                                    <form action="submit_order.php" method="post" id="orderForm" class="d-inline">
+                                        <input type="hidden" name="cartItems" value="<?php echo htmlspecialchars(json_encode($cartItems ?? [])); ?>">
+                                        <input type="hidden" name="totalPrice" id="totalPrice" value="<?php echo htmlspecialchars($payableAmount ?? 0); ?>">
+                                        <input type="hidden" name="includeTax" id="includeTaxHidden" value="<?php echo $isTaxIncluded ? '1' : '0'; ?>">
+                                        <input type="hidden" name="customerID" id="selectedCustomerID">
+                                        
+                                        <button type="submit" name="submit" class="btn btn-success btn-sm" style="background-color: #16A645; border: none;">Proceed</button>
+                                    </form>
                                 </div>
-                            </form>
-
-                            <!-- Cancel Button -->
-                            <div class="d-flex justify-content-end mt-3">
-                                <button type="button" class="btn btn-secondary" style="background-color: #C94F60; border: none;" onclick="toggleCartVisibility(false)">Cancel</button>
                             </div>
-                        </li>
+                            </li>
                     </ul>
-<!-- Product Selection Modal -->
 <div class="modal fade" id="productSelectionModal" tabindex="-1" aria-labelledby="productSelectionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" style="max-width: 460px;">
         <div class="modal-content" style="border-radius: 8px;">
@@ -271,8 +245,7 @@ $payableAmount = $cartSubtotal;
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
-                <!-- Search Input -->
-                <input type="text" id="productSearchInput" class="form-control mb-3" placeholder="Search products..." autofocus>
+                <input type="text" id="productSearchInput" class="form-control mb-3" placeholder="Search products..." autofocus autocomplete="off">
 
                 <ul class="list-group" id="productList">
                     <?php if ($products): ?>
@@ -321,10 +294,14 @@ $payableAmount = $cartSubtotal;
                             </li>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <li class="list-group-item text-center text-muted py-4">No products found</li>
+                        <li class="list-group-item text-center text-muted py-4">No products found in database</li>
                     <?php endif; ?>
                 </ul>
-            </div>
+                <div id="noResultsMessage" class="text-center text-muted py-4" style="display: none;">
+                    <i class="fas fa-search fa-2x mb-3 opacity-5"></i>
+                    <p class="mb-0">No products match your search.</p>
+                </div>
+                </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cancel</button>
             </div>
@@ -332,45 +309,37 @@ $payableAmount = $cartSubtotal;
     </div>
 </div>
 
-<!-- JavaScript -->
 <script>
     // Variable to track if items have been added to cart
     let itemsAddedToCart = false;
 
-    // Function to filter products by name
+    // Function to filter products by name in real-time
     function filterProducts() {
-        const searchInput = document.getElementById('productSearchInput').value.trim().toLowerCase();
+        const searchInput = document.getElementById('productSearchInput');
+        const filterValue = searchInput.value.trim().toLowerCase();
         const productItems = document.querySelectorAll('.product-item');
-        let hasVisibleItems = false;
+        const noResultsMsg = document.getElementById('noResultsMessage');
+        let visibleCount = 0;
 
         productItems.forEach(item => {
-            const productName = item.getAttribute('data-name').toLowerCase();
-            const productCode = item.getAttribute('data-code') ? item.getAttribute('data-code').toLowerCase() : '';
-            const productCategory = item.querySelector('.product-category') ? 
-                                 item.querySelector('.product-category').textContent.toLowerCase() : '';
+            // Get product name from data attribute
+            const productName = item.getAttribute('data-name') || '';
             
-            // Search in name, code, and category
-            const isVisible = productName.includes(searchInput) || 
-                             productCode.includes(searchInput) ||
-                             productCategory.includes(searchInput);
-            
-            item.style.display = isVisible ? 'flex' : 'none';
-            if (isVisible) hasVisibleItems = true;
+            // Check if name contains search term
+            if (productName.includes(filterValue)) {
+                item.style.setProperty('display', 'flex', 'important'); // Force display flex
+                visibleCount++;
+            } else {
+                item.style.setProperty('display', 'none', 'important'); // Force hide
+            }
         });
-    }
 
-    // Function to handle search button click
-    function searchProducts() {
-        filterProducts();
-    }
-
-    // Function to clear search and reset the list
-    function clearSearch() {
-        document.getElementById('productSearchInput').value = '';
-        const productItems = document.querySelectorAll('.product-item');
-        productItems.forEach(item => {
-            item.style.display = 'flex';
-        });
+        // Toggle "No Results" message based on visible items
+        if (visibleCount === 0 && productItems.length > 0) {
+            noResultsMsg.style.display = 'block';
+        } else {
+            noResultsMsg.style.display = 'none';
+        }
     }
 
     // Function to handle adding a product to cart
@@ -532,6 +501,25 @@ function addToCart(productId) {
 
     // Event listener for modal close events (X button or ESC key)
     document.getElementById('productSelectionModal')?.addEventListener('hidden.bs.modal', function () {
+        const searchInput = document.getElementById('productSearchInput');
+        const noResultsMsg = document.getElementById('noResultsMessage');
+        const productItems = document.querySelectorAll('.product-item');
+
+        // 1. Clear the search input
+        if (searchInput) {
+            searchInput.value = '';
+        }
+
+        // 2. Hide the "No Results" message
+        if (noResultsMsg) {
+            noResultsMsg.style.display = 'none';
+        }
+
+        // 3. Reset all products to be visible again
+        productItems.forEach(item => {
+            item.style.display = 'flex'; 
+        });
+
         // Fast refresh when modal is closed if items were added
         if (itemsAddedToCart) {
             sessionStorage.setItem('showCartAfterRefresh', 'true');
@@ -542,7 +530,16 @@ function addToCart(productId) {
 
     // OPTIMIZED: Fast page load handler for immediate cart display
     document.addEventListener('DOMContentLoaded', function() {
-        // Check if this is a fast refresh
+        // NEW: Check for URL parameter from PHP redirect (added for your delete logic)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('cart') === 'open') {
+            showCartImmediately();
+            // Optional: Clean URL so it doesn't reopen on manual refresh
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.replaceState({path: newUrl}, '', newUrl);
+        }
+
+        // Check if this is a fast refresh (Existing Logic)
         const isFastRefresh = sessionStorage.getItem('fastRefresh') === 'true';
         const showCart = sessionStorage.getItem('showCartAfterRefresh') === 'true';
         const clearCartAction = sessionStorage.getItem('clearCartAction') === 'true';
@@ -618,35 +615,11 @@ function addToCart(productId) {
         }
     }
 
-    // Enhanced search functionality - search on Enter key press
-    document.getElementById('productSearchInput')?.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchProducts();
-        }
-    });
-
+    // Enhanced search functionality - search on Enter key press (Removed as 'input' listener handles it)
+    
     // Real-time search as user types
     document.getElementById('productSearchInput')?.addEventListener('input', function() {
-        const searchInput = this.value.trim().toLowerCase();
-        const productItems = document.querySelectorAll('.product-item');
-        
-        // If search input is empty, show all products
-        if (searchInput === '') {
-            productItems.forEach(item => {
-                item.style.display = 'flex';
-            });
-            return;
-        }
-        
-        // Filter products based on search input
-        productItems.forEach(item => {
-            const productName = item.getAttribute('data-name');
-            if (productName.includes(searchInput)) {
-                item.style.display = 'flex';
-            } else {
-                item.style.display = 'none';
-            }
-        });
+        filterProducts();
     });
 
     // PERFORMANCE OPTIMIZATION: Preload cart functions
@@ -656,12 +629,16 @@ function addToCart(productId) {
             // Cache the function for faster execution
             window.cachedLoadCartItems = loadCartItems;
         }
+        
+        // Focus the input field automatically when modal opens
+        document.getElementById('productSelectionModal')?.addEventListener('shown.bs.modal', function () {
+            document.getElementById('productSearchInput')?.focus();
+        });
     });
 </script>
 
     </nav>
-    <!-- End Navbar -->
-   <?php
+    <?php
 include 'connection.php'; // Include DB connection
 
 // Get today's date
@@ -693,10 +670,8 @@ $totalCost = $totalCostResult['total_cost'] ?? 0;
 $conn->close();
 ?>
 
-<!-- HTML to display the cards -->
 <div class="container-fluid py-4">
   <div class="row">
-    <!-- Card 1: Staff -->
     <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
       <div class="card">
         <div class="card-body p-3">
@@ -717,7 +692,6 @@ $conn->close();
       </div>
     </div>
 
-    <!-- Card 2: Products -->
     <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
       <div class="card">
         <div class="card-body p-3">
@@ -738,7 +712,6 @@ $conn->close();
       </div>
     </div>
 
-    <!-- Card 3: Today's Orders -->
     <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
       <div class="card">
         <div class="card-body p-3">
@@ -759,7 +732,6 @@ $conn->close();
       </div>
     </div>
 
-    <!-- Card 4: Total Cost -->
     <div class="col-xl-3 col-sm-6">
       <div class="card">
         <div class="card-body p-3">
@@ -793,7 +765,17 @@ $taxRate = 0.18;
 // Get search input
 $search = isset($_GET['search']) ? $_GET['search'] : '';
 
+if (!empty($searchKeyword)) {
+    // Escape for LIKE search
+    $searchPattern = "%" . str_replace(['%', '_'], ['\\%', '\\_'], $searchKeyword) . "%";
+    $whereConditions[] = "ProductName LIKE ?";
+    $params[] = $searchPattern;
+    $types .= 's';
+
+}
+
 // Query to fetch order data (removed LPO, Address, PaymentMode)
+
 $query = "
     SELECT 
         o.ID AS OrderID, u.username AS UserName, c.CustomerName, oi.Quantity, 
@@ -803,13 +785,16 @@ $query = "
     JOIN users u ON o.UserID = u.id 
     JOIN customers c ON o.CustomerID = c.CustomerID 
     JOIN order_items oi ON o.ID = oi.OrderID 
-    JOIN products p ON oi.ProductID = p.ID 
+    JOIN products p ON oi.ProductID = p.ID  
     WHERE 
         c.CustomerName LIKE ? OR 
         o.ID LIKE ? OR 
         u.username LIKE ?
     ORDER BY o.AddedDate DESC
 ";
+
+$stmt = $conn->prepare($query);
+// ... the rest of the file
 
 $stmt = $conn->prepare($query);
 $searchParam = "%{$search}%";
@@ -970,11 +955,6 @@ while ($row = $result->fetch_assoc()) {
                                                     </div>
                                                 <?php endif; ?>
                                             </td>
-                                            <!-- <td>
-                                                <span class="text-secondary text-xs font-weight-bold">
-                                                    Tsh <?= number_format($includeTax ? $order['TotalPrice'] * (1 + $taxRate) : $order['TotalPrice'], 2) ?>
-                                                </span>
-                                            </td> -->
                                             <td>
                                                 <span class="text-secondary text-xs font-weight-bold">
                                                     <?= date('M j, Y g:i A', strtotime($order['AddedDate'])) ?>
@@ -995,15 +975,6 @@ while ($row = $result->fetch_assoc()) {
                                                     <span class="text-secondary text-xs">Not Available</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <!-- <td>
-                                                <button class="btn btn-sm btn-outline-<?= $order['PaymentStatus'] === 'Unpaid' ? 'danger' : ($order['PaymentStatus'] === 'Pending' ? 'warning' : 'success') ?> update-payment" 
-                                                        data-order-id="<?= $order['OrderID'] ?>" 
-                                                        data-current-status="<?= $order['PaymentStatus'] ?>"
-                                                        title="Click to update payment status">
-                                                    <i class="fas fa-<?= $order['PaymentStatus'] === 'Paid' ? 'check-circle' : ($order['PaymentStatus'] === 'Pending' ? 'clock' : 'times-circle') ?>"></i>
-                                                    <?= htmlspecialchars($order['PaymentStatus']) ?>
-                                                </button>
-                                            </td> -->
                                             <td>
                                                 <div class="dropdown">
                                                     <button class="btn btn-sm btn-primary dropdown-toggle d-flex align-items-center" type="button" 
@@ -1277,19 +1248,12 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="container-fluid">
           <div class="row align-items-center justify-content-lg-between">
             <div class="col-lg-6 mb-lg-0 mb-4">
-              <!-- <div class="copyright text-center text-sm text-muted text-lg-start">
-                © <script>
-                  document.write(new Date().getFullYear())
-                </script><i class="fa fa-heart"></i>
-                <a href="index.html" class="font-weight-bold" target="_blank"></a>
-              </div> -->
-            </div>
+              </div>
           </div>
         </div>
       </footer>
     </div>
   </main>
-  <!--   Core JS Files   -->
   <script src="./assets/js/core/popper.min.js"></script>
   <script src="./assets/js/core/bootstrap.min.js"></script>
   <script src="./assets/js/plugins/perfect-scrollbar.min.js"></script>
@@ -1467,9 +1431,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 </script>
-  <!-- Github buttons -->
   <script async defer src="https://buttons.github.io/buttons.js"></script>
-  <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
   <script src="./assets/js/argon-dashboard.min.js?v=2.0.4"></script>
 </body>
 
