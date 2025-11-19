@@ -38,12 +38,14 @@ STEM STORE
     align-items: center; /* Center vertically if needed */
     margin-top: 1rem; /* Add space above */
 }
-</style>
+/* Make top header background span full width on this page */
+.main-content { border-top-left-radius: 0 !important; border-top-right-radius: 0 !important; }
+  </style>
 
 </head>
 
 <body class="g-sidenav-show   bg-gray-100">
-  <div class="min-height-300 bg-primary position-absolute w-100"></div>
+  <div class="min-height-300 bg-primary position-absolute top-0 start-0 end-0 w-100"></div>
 <aside class="sidenav bg-white navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-4" id="sidenav-main" style="height: 100vh; position: fixed; overflow: hidden;">
     <div class="sidenav-header">
       <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-xl-none" aria-hidden="true" id="iconSidenav"></i>
@@ -234,7 +236,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save'])) {
 
 // Handle DELETE request for deleting a user/admin
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete'])) {
-    $admin_id = $_POST['admin_id'];
+    // CSRF token validation
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== ($_SESSION['csrf_token'] ?? '')) {
+        die('Invalid CSRF token');
+    }
+    $admin_id = (int)($_POST['admin_id'] ?? 0);
 
     // OPTIONAL: prevent deleting yourself (security best practice)
     if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $admin_id) {
@@ -253,18 +259,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete'])) {
     exit();
 }
 
-// Fetch users for displaying in the table
-// Only users with roles 'Admin' or 'User' (no 'Director' or 'HR')
-$sql = "SELECT id, username, email, password, role, can_manage_admins, can_manage_users, can_view_reports FROM users WHERE role IN ('Admin', 'User')";
+// Fetch admins only
+$sql = "SELECT id, username, email, password, role, can_manage_admins, can_manage_users, can_view_reports FROM users WHERE role = 'Admin'";
 $result = $conn->query($sql);
 ?>
 
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
-            <div class="card mb-4">
+                <div class="card mb-4">
                 <div class="card-header pb-0">
-                    <h6>User List</h6>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Admin List</h6>
+                        <form method="GET" action="" class="form-inline d-flex admins-search-form">
+                            <input id="adminsSearchInput" type="text" name="search" placeholder="Search Admin" aria-label="Search Admin"
+                                   value="<?= htmlspecialchars($_GET['search'] ?? '') ?>" class="form-control me-2" autocomplete="off">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                            <?php if (!empty($_GET['search'])): ?>
+                              <a href="?" class="btn btn-secondary ms-2">Clear</a>
+                            <?php endif; ?>
+                        </form>
+                    </div>
                 </div>
                 <div class="card-body px-0 pt-0 pb-2">
                     <?php
@@ -296,7 +311,7 @@ $result = $conn->query($sql);
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="adminsTableBody">
                                     <?php
                                     if ($result->num_rows > 0) {
                                         while ($row = $result->fetch_assoc()) {
@@ -312,13 +327,14 @@ $result = $conn->query($sql);
 
                                             // Delete button: disable if user is current logged-in user
                                             if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $row['id']) {
-                                                echo "<td><button class='btn btn-secondary btn-sm' disabled>Cannot Delete Self</button></td>";
+                                                echo "<td>
+                                                    <a href='edit_user.php?id=" . $row['id'] . "&return=Manageadmin' class='btn btn-warning btn-sm me-1'>Edit</a>
+                                                    <button class='btn btn-secondary btn-sm' disabled>Cannot Delete Self</button>
+                                                </td>";
                                             } else {
                                                 echo "<td>
-                                                    <form method='POST' style='display:inline'>
-                                                        <input type='hidden' name='admin_id' value='" . $row['id'] . "'>
-                                                        <button type='submit' name='delete' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure you want to delete this user?\")'>Delete</button>
-                                                    </form>
+                                                    <a href='edit_user.php?id=" . $row['id'] . "&return=Manageadmin' class='btn btn-warning btn-sm me-1'>Edit</a>
+                                                    <button type='button' class='btn btn-danger btn-sm' onclick='return confirmDeleteAdmin(" . $row['id'] . ")'>Delete</button>
                                                 </td>";
                                             }
 
@@ -328,12 +344,23 @@ $result = $conn->query($sql);
                                         echo "<tr><td colspan='9'>No users found</td></tr>";
                                     }
                                     ?>
+                                    <tr id="adminsNoRows" style="display:none;">
+                                        <td colspan="9" class="text-center py-4">
+                                            <div class="text-muted"><i class="fas fa-inbox fa-2x mb-2 d-block"></i>No matching admins</div>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
                         <div class="center-button mt-3">
                             <button type="submit" name="save" class="btn btn-primary">Save Changes</button>
                         </div>
+                    </form>
+                    <!-- Hidden delete form (separate from privileges form to avoid nesting) -->
+                    <form id="adminDeleteForm" method="POST" style="display:none;">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
+                        <input type="hidden" name="admin_id" id="adminDeleteId" value="">
+                        <input type="hidden" name="delete" value="1">
                     </form>
                 </div>
             </div>
@@ -384,6 +411,44 @@ ob_end_flush();
   <script async defer src="https://buttons.github.io/buttons.js"></script>
   <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
   <script src="../assets/js/argon-dashboard.min.js?v=2.0.4"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const form = document.querySelector('.admins-search-form');
+      const input = document.getElementById('adminsSearchInput');
+      const tbody = document.getElementById('adminsTableBody');
+      const noRow = document.getElementById('adminsNoRows');
+      if (!form || !input || !tbody) return;
+      function applyFilter() {
+        const q = (input.value || '').trim().toLowerCase();
+        const rows = Array.from(tbody.querySelectorAll('tr')).filter(r => r !== noRow);
+        let visible = 0;
+        if (q.length < 2) {
+          rows.forEach(r => r.style.display = '');
+          if (noRow) noRow.style.display = 'none';
+          return;
+        }
+        rows.forEach(row => {
+          const text = row.innerText.toLowerCase();
+          const show = text.includes(q);
+          row.style.display = show ? '' : 'none';
+          if (show) visible++;
+        });
+        if (noRow) noRow.style.display = visible === 0 ? '' : 'none';
+      }
+      input.addEventListener('input', applyFilter);
+      form.addEventListener('submit', function (e) { e.preventDefault(); applyFilter(); });
+      applyFilter();
+      // Delete helper
+      window.confirmDeleteAdmin = function(id) {
+        if (confirm('Are you sure you want to delete this user?')) {
+          document.getElementById('adminDeleteId').value = id;
+          document.getElementById('adminDeleteForm').submit();
+          return true;
+        }
+        return false;
+      };
+    });
+  </script>
 </body>
 
 </html>

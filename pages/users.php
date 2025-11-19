@@ -23,10 +23,13 @@ STEM STORE
   <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
   <link rel="stylesheet" href="../assets/css/theme.css" />
   <link rel="stylesheet" href="../assets/css/custom-theme.css?v=20251118" />
+  <style>
+    .main-content { border-top-left-radius: 0 !important; border-top-right-radius: 0 !important; }
+  </style>
 </head>
 
 <body class="g-sidenav-show   bg-gray-100">
-  <div class="min-height-300 bg-primary position-absolute w-100"></div>
+  <div class="min-height-300 bg-primary position-absolute top-0 start-0 end-0 w-100"></div>
   <aside class="sidenav bg-white navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-4" id="sidenav-main" style="height: 100vh; position: fixed; overflow: hidden;">
     <div class="sidenav-header">
       <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
@@ -239,8 +242,30 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Fetch all users except 'Director' and 'HR'
-$sql = "SELECT id, username, email, password, role, created_at FROM users WHERE role NOT IN ('Director', 'HR')";
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+if (!isset($_SESSION['csrf_token'])) { $_SESSION['csrf_token'] = bin2hex(random_bytes(32)); }
+
+$delete_success = false;
+$delete_error = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'])) {
+    $csrf = $_POST['csrf_token'] ?? '';
+    $uid = isset($_POST['user_id']) ? (int)$_POST['user_id'] : 0;
+    if ($csrf !== ($_SESSION['csrf_token'] ?? '')) {
+        $delete_error = 'Invalid request.';
+    } elseif (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $uid) {
+        $delete_error = 'You cannot delete yourself.';
+    } elseif ($uid > 0) {
+        $stmt = $conn->prepare('DELETE FROM users WHERE id = ?');
+        $stmt->bind_param('i', $uid);
+        if ($stmt->execute()) { $delete_success = true; } else { $delete_error = 'Delete failed.'; }
+        $stmt->close();
+    } else {
+        $delete_error = 'Invalid user.';
+    }
+}
+
+// Fetch only users (exclude admins and other roles)
+$sql = "SELECT id, username, email, password, role, created_at FROM users WHERE role = 'User'";
 
 // Execute the query and check for errors
 $result = $conn->query($sql);
@@ -255,11 +280,26 @@ if (!$result) {
 <div class="container-fluid py-4"> 
   <div class="row">
     <div class="col-12">
-      <div class="card mb-4">
+        <div class="card mb-4">
         <div class="card-header pb-0">
-          <h6>User List</h6>
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">User List</h6>
+            <form method="GET" action="" class="form-inline d-flex users-search-form">
+              <input id="userSearchInput" type="text" name="search" placeholder="Search User" aria-label="Search User"
+                     value="<?= htmlspecialchars($_GET['search'] ?? '') ?>" class="form-control me-2" autocomplete="off">
+              <button type="submit" class="btn btn-primary">Search</button>
+              <?php if (!empty($_GET['search'])): ?>
+                <a href="?" class="btn btn-secondary ms-2">Clear</a>
+              <?php endif; ?>
+            </form>
+          </div>
         </div>
         <div class="card-body px-0 pt-0 pb-2">
+          <?php if ($delete_success): ?>
+            <div class="alert alert-success mx-3 mt-3">User deleted successfully.</div>
+          <?php elseif (!empty($delete_error)): ?>
+            <div class="alert alert-danger mx-3 mt-3"><?php echo htmlspecialchars($delete_error); ?></div>
+          <?php endif; ?>
           <div class="table-responsive p-0">
             <table class="table align-items-center mb-0">
               <thead>
@@ -272,7 +312,7 @@ if (!$result) {
                   <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Action</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="usersTableBody">
                 <?php
                 if ($result->num_rows > 0) {
                   // Output each row
@@ -284,8 +324,8 @@ if (!$result) {
                     echo "<td><p class='text-xs font-weight-bold mb-0'>" . htmlspecialchars($row['role']) . "</p></td>";
                     echo "<td><p class='text-xs font-weight-bold mb-0'>" . htmlspecialchars($row['created_at']) . "</p></td>";
                     echo "<td class='align-middle'>
-                            <button class='btn btn-xs btn-warning'>Edit</button>
-                            <button class='btn btn-xs btn-danger'>Delete</button>
+                            <a href='edit_user.php?id=" . $row['id'] . "&return=users' class='btn btn-xs btn-warning me-1'>Edit</a>
+                            <button type='button' class='btn btn-xs btn-danger' onclick='return confirmDeleteUser(" . $row['id'] . ")'>Delete</button>
                           </td>";
                     echo "</tr>";
                   }
@@ -293,11 +333,22 @@ if (!$result) {
                   echo "<tr><td colspan='7' class='text-center'>No users found</td></tr>";
                 }
                 ?>
+                <tr id="usersNoRows" style="display:none;">
+                  <td colspan="7" class="text-center py-4">
+                    <div class="text-muted"><i class="fas fa-inbox fa-2x mb-2 d-block"></i>No matching users</div>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
+      <!-- Hidden delete form to avoid nested forms in table -->
+      <form id="userDeleteForm" method="POST" style="display:none;">
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
+        <input type="hidden" name="user_id" id="userDeleteId" value="">
+        <input type="hidden" name="delete" value="1">
+      </form>
     </div>
   </div>
 </div>
@@ -340,6 +391,54 @@ if (!$result) {
   <script async defer src="https://buttons.github.io/buttons.js"></script>
   <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
   <script src="../assets/js/argon-dashboard.min.js?v=2.0.4"></script>
+  <script>
+    // Client-side filter for users table (no refresh)
+    document.addEventListener('DOMContentLoaded', function () {
+      const input = document.getElementById('userSearchInput');
+      const form = document.querySelector('.users-search-form');
+      const tbody = document.getElementById('usersTableBody');
+      const noRow = document.getElementById('usersNoRows');
+
+      if (!input || !tbody) return;
+
+      function applyFilter() {
+        const q = (input.value || '').trim().toLowerCase();
+        const rows = Array.from(tbody.querySelectorAll('tr')).filter(r => r !== noRow);
+        let visible = 0;
+
+        if (q.length < 2) {
+          rows.forEach(r => r.style.display = '');
+          if (noRow) noRow.style.display = 'none';
+          return;
+        }
+
+        rows.forEach(row => {
+          const text = row.innerText.toLowerCase();
+          const show = text.includes(q);
+          row.style.display = show ? '' : 'none';
+          if (show) visible++;
+        });
+
+        if (noRow) noRow.style.display = visible === 0 ? '' : 'none';
+      }
+
+      input.addEventListener('input', applyFilter);
+      form?.addEventListener('submit', function (e) { e.preventDefault(); applyFilter(); });
+
+      // Initial render
+      applyFilter();
+
+      // Delete helper
+      window.confirmDeleteUser = function(id) {
+        if (confirm('Are you sure you want to delete this user?')) {
+          document.getElementById('userDeleteId').value = id;
+          document.getElementById('userDeleteForm').submit();
+          return true;
+        }
+        return false;
+      };
+    });
+  </script>
 </body>
 
 </html>
