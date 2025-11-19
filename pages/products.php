@@ -1,3 +1,104 @@
+<?php
+include '../connection.php'; // Ensure this path is correct
+
+// ===============================================
+// 1. Determine if this is an AJAX request or a standard page load
+// ===============================================
+$is_ajax = isset($_GET['ajax']) && $_GET['ajax'] === 'true';
+
+// Get search and filter parameters
+$searchKeyword = isset($_GET['search']) ? trim($_GET['search']) : '';
+$categoryFilter = isset($_GET['category']) ? $_GET['category'] : [];
+if (!is_array($categoryFilter)) $categoryFilter = [$categoryFilter];
+
+// ===============================================
+// 2. Database Query Logic (Used for both page load and AJAX)
+// ===============================================
+$whereConditions = [];
+$params = [];
+$types = '';
+
+if (!empty($searchKeyword)) {
+    // Escape for LIKE search
+    $searchPattern = "%" . str_replace(['%', '_'], ['\\%', '\\_'], $searchKeyword) . "%";
+    $whereConditions[] = "ProductName LIKE ?";
+    $params[] = $searchPattern;
+    $types .= 's';
+}
+
+if (!empty($categoryFilter)) {
+    $placeholders = implode(',', array_fill(0, count($categoryFilter), '?'));
+    $whereConditions[] = "prod_cat IN ($placeholders)";
+    foreach ($categoryFilter as $cat) {
+        $params[] = $cat;
+        $types .= 's';
+    }
+}
+
+$whereClause = !empty($whereConditions)
+    ? 'WHERE ' . implode(' AND ', $whereConditions)
+    : '';
+
+// Total Count Query
+$countQuery = "SELECT COUNT(*) as total FROM products $whereClause";
+$countStmt = $conn->prepare($countQuery);
+if (!empty($params)) $countStmt->bind_param($types, ...$params);
+$countStmt->execute();
+$totalItems = $countStmt->get_result()->fetch_assoc()['total'];
+$countStmt->close();
+
+
+// Product Fetch Query
+$query = "SELECT * FROM products $whereClause ORDER BY ProductName ASC";
+$stmt = $conn->prepare($query);
+if (!empty($params)) $stmt->bind_param($types, ...$params);
+$stmt->execute();
+$products = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+// Get categories for filter dropdown (always run for the full page structure)
+$categoryQuery = $conn->query("SELECT DISTINCT prod_cat FROM products WHERE prod_cat IS NOT NULL AND prod_cat != '' ORDER BY prod_cat");
+
+
+// ===============================================
+// 3. AJAX Response Output (Only runs if ?ajax=true is set)
+// ===============================================
+if ($is_ajax) {
+    // 3a. Output the Filter Status HTML (Sent first)
+    $filterStatusHtml = '';
+    if ($searchKeyword || !empty($categoryFilter)) {
+        $categoryList = implode(", ", array_map('htmlspecialchars', $categoryFilter));
+        
+        // Removed mt-3 here as it's better applied to the container in the main HTML
+        $filterStatusHtml = "
+        <div id='filterStatus' class='alert alert-info d-flex justify-content-between align-items-center'>
+            <div>
+                <i class='fas fa-info-circle me-2'></i>
+                Found <strong>" . number_format($totalItems) . "</strong> product(s)
+                " . ($searchKeyword ? "matching '<strong>" . htmlspecialchars($searchKeyword) . "</strong>'" : "") . "
+                " . (!empty($categoryFilter) ? " in category(s) '<strong>" . $categoryList . "</strong>'" : "") . "
+            </div>
+            <a href='products.php' class='btn btn-sm btn-outline-info'>Clear Filters</a>
+        </div>";
+    }
+
+    // We send a JSON object containing two parts: the status and the table HTML.
+    header('Content-Type: application/json');
+    echo json_encode([
+        'status_html' => $filterStatusHtml,
+        'table_html' => (function() use ($products, $totalItems) {
+            ob_start();
+            include 'product_table_template.php'; 
+            return ob_get_clean();
+        })()
+    ]);
+    
+    exit; // Stop execution after sending the AJAX content
+}
+// ===============================================
+// 4. Standard Page Load HTML Output (Runs if ?ajax=true is NOT set)
+// ===============================================
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -8,14 +109,12 @@
   <link rel="icon" type="image/png" href="../assets/img/white.png">
   <title>STEM STORE - Manage Products</title>
 
-  <!-- Fonts and Icons -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link href="../assets/css/nucleo-icons.css" rel="stylesheet" />
   <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
   <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
 
-  <!-- Argon Dashboard CSS -->
   <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
   <link rel="stylesheet" href="../assets/css/theme.css" />
 </head>
@@ -23,7 +122,6 @@
 <body class="g-sidenav-show bg-gray-100">
   <div class="min-height-300 bg-primary position-absolute w-100"></div>
 
-  <!-- Sidebar -->
   <aside class="sidenav bg-white navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-4" id="sidenav-main" style="height: 100vh; position: fixed; overflow: hidden;">
     <div class="sidenav-header">
       <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
@@ -55,51 +153,6 @@
     <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur">
       <div class="container-fluid py-1 px-3"></div>
     </nav>
-
-    <?php
-    include '../connection.php';
-
-    $searchKeyword = isset($_GET['search']) ? trim($_GET['search']) : '';
-    $categoryFilter = isset($_GET['category']) ? $_GET['category'] : [];
-    if (!is_array($categoryFilter)) $categoryFilter = [$categoryFilter];
-
-    $whereConditions = [];
-    $params = [];
-    $types = '';
-
-    if (!empty($searchKeyword)) {
-        $whereConditions[] = "ProductName LIKE ?";
-        $params[] = "%$searchKeyword%";
-        $types .= 's';
-    }
-
-    if (!empty($categoryFilter)) {
-        $placeholders = implode(',', array_fill(0, count($categoryFilter), '?'));
-        $whereConditions[] = "prod_cat IN ($placeholders)";
-        foreach ($categoryFilter as $cat) {
-            $params[] = $cat;
-            $types .= 's';
-        }
-    }
-
-    $whereClause = !empty($whereConditions)
-        ? 'WHERE ' . implode(' AND ', $whereConditions)
-        : '';
-
-    $countQuery = "SELECT COUNT(*) as total FROM products $whereClause";
-    $countStmt = $conn->prepare($countQuery);
-    if (!empty($params)) $countStmt->bind_param($types, ...$params);
-    $countStmt->execute();
-    $totalItems = $countStmt->get_result()->fetch_assoc()['total'];
-
-    $categoryQuery = $conn->query("SELECT DISTINCT prod_cat FROM products WHERE prod_cat IS NOT NULL AND prod_cat != '' ORDER BY prod_cat");
-
-    $query = "SELECT * FROM products $whereClause ORDER BY ProductName ASC";
-    $stmt = $conn->prepare($query);
-    if (!empty($params)) $stmt->bind_param($types, ...$params);
-    $stmt->execute();
-    $products = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    ?>
 
     <style>
         .card { border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; }
@@ -134,7 +187,7 @@
         .table-responsive-2d::-webkit-scrollbar-thumb { background:#c1c1c1; border-radius:10px; }
         .table-responsive-2d::-webkit-scrollbar-thumb:hover { background:#a8a8a8; }
 
-        /* 🔥 Dropdown panel styling */
+        /* Dropdown panel styling */
         .category-dropdown {
             position: relative;
         }
@@ -149,7 +202,8 @@
             padding: 10px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             display: none;
-            z-index: 999;
+            /* Ensure the panel stays on top of the alert and table */
+            z-index: 1000; 
         }
         .category-panel.show {
             display: block;
@@ -159,22 +213,25 @@
             padding: 4px;
             cursor: pointer;
         }
+        #loadingIndicator {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
     </style>
 
     <div class="container-fluid py-4">
 
-        <!-- Search & Filter Form -->
         <div class="row mb-4">
             <div class="col-12">
-                <form method="GET" class="row g-3 align-items-end">
+                <form id="filterForm" class="row g-3 align-items-end" onsubmit="event.preventDefault(); fetchProducts();">
 
                     <div class="col-md-4">
-                        <input type="text" name="search" class="form-control" placeholder="Search product name..."
-                            value="<?php echo htmlspecialchars($searchKeyword); ?>">
+                        <input type="text" name="search" id="searchInput" class="form-control" placeholder="Search product name..."
+                            value="<?php echo htmlspecialchars($searchKeyword); ?>" oninput="fetchProducts();">
                     </div>
 
                     <div class="col-md-3">
-                        <!-- 🔥 CUSTOM CATEGORY MULTI-SELECT DROPDOWN -->
                         <div class="category-dropdown">
                             <button type="button" class="form-control text-start" id="categoryBtn">
                                 <?php 
@@ -185,6 +242,7 @@
 
                             <div class="category-panel" id="categoryPanel">
                                 <?php 
+                                // Reset pointer for output
                                 $categoryQuery->data_seek(0);
                                 while ($cat = $categoryQuery->fetch_assoc()): 
                                     $value = htmlspecialchars($cat['prod_cat']);
@@ -206,11 +264,11 @@
 
                     <div class="col-md-5">
                         <div class="btn-group w-100">
-                            <button type="submit" class="btn btn-primary">
+                            <!-- <button type="button" class="btn btn-primary" onclick="fetchProducts()">
                                 <i class="fas fa-search me-1"></i> Search
-                            </button>
+                            </button> -->
                             <a href="?" class="btn btn-outline-secondary">
-                                <i class="fas fa-times me-1"></i> Clear
+                                <i class="fas fa-times me-1"></i> Clear All
                             </a>
                             <button type="button" class="btn btn-success" onclick="exportTableToCSV('STEM_Store_Products.csv')">
                                 <i class="fas fa-file-export me-1"></i> Export CSV
@@ -218,92 +276,40 @@
                         </div>
                     </div>
                 </form>
-
-                <?php if ($searchKeyword || !empty($categoryFilter)): ?>
-                <div class="mt-3 alert alert-info d-flex justify-content-between align-items-center">
-                    <div>
-                        <i class="fas fa-info-circle me-2"></i>
-                        Found <strong><?php echo number_format($totalItems); ?></strong> product(s)
-
-                        <?php if ($searchKeyword): ?>
-                            matching '<strong><?php echo htmlspecialchars($searchKeyword); ?></strong>'
-                        <?php endif; ?>
-
-                        <?php if (!empty($categoryFilter)): ?>
-                            in category(s) '<strong><?php echo implode(", ", array_map('htmlspecialchars', $categoryFilter)); ?></strong>'
-                        <?php endif; ?>
-                    </div>
-                    <a href="?" class="btn btn-sm btn-outline-info">Clear Filters</a>
+                
+                <div id="filterStatusContainer" class="mt-4 mb-3">
+                    <?php 
+                    // Initial load filter status display
+                    if ($searchKeyword || !empty($categoryFilter)): 
+                        $categoryList = implode(", ", array_map('htmlspecialchars', $categoryFilter));
+                        ?>
+                        <div class="alert alert-info d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-info-circle me-2"></i>
+                                Found **<?php echo number_format($totalItems); ?>** product(s)
+                                <?php if ($searchKeyword): ?>
+                                    matching '<strong><?php echo htmlspecialchars($searchKeyword); ?></strong>'
+                                <?php endif; ?>
+                                <?php if (!empty($categoryFilter)): ?>
+                                    in category(s) '<strong><?php echo $categoryList; ?></strong>'
+                                <?php endif; ?>
+                            </div>
+                            <a href="products.php" class="btn btn-sm btn-outline-info">Clear Filters</a>
+                        </div>
+                    <?php endif; ?>
                 </div>
-                <?php endif; ?>
-            </div>
-        </div>
 
-        <!-- Products Table -->
-        <div class="card">
-            <div class="card-header card-header-white">
-                <h6 class="mb-0">All Products (<?php echo number_format($totalItems); ?> items)</h6>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive-2d">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Part Code</th>
-                                <th>Product Name</th>
-                                <th>Image</th>
-                                <th>Price</th>
-                                <th>Quantity</th>
-                                <th>Description</th>
-                                <th>Category</th>
-                                <th>Date Added</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (!empty($products)): ?>
-                                <?php foreach ($products as $product): ?>
-                                <tr>
-                                    <td><strong>PI-<?php echo $product['ID']; ?></strong></td>
-                                    <td><?php echo htmlspecialchars($product['ProductName']); ?></td>
-                                    <td>
-                                        <a href="javascript:void(0)" onclick="showImageModal('<?php echo htmlspecialchars($product['Image']); ?>')">
-                                            <img src="<?php echo htmlspecialchars($product['Image']); ?>" width="60" height="60" style="object-fit:cover; border-radius:8px; border:2px solid #eee;">
-                                        </a>
-                                    </td>
-                                    <td><strong>Tsh <?php echo number_format($product['prod_price'], 2); ?></strong></td>
-                                    <td>
-                                        <?php echo $product['Quantity']; ?>
-                                        <?php if ($product['Quantity'] < 5): ?>
-                                            <span class="low-stock ms-2">Low Stock</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td><?php echo htmlspecialchars($product['Description']); ?></td>
-                                    <td><span class="badge bg-primary"><?php echo htmlspecialchars($product['prod_cat']); ?></span></td>
-                                    <td><?php echo date('d M Y', strtotime($product['AddedDate'])); ?></td>
-                                    <td>
-                                        <a href="edit_product.php?id=<?php echo $product['ID']; ?>" class="btn btn-sm btn-info mb-1">Edit</a>
-                                        <a href="delete_product.php?id=<?php echo $product['ID']; ?>" class="btn btn-sm btn-danger mb-1" 
-                                           onclick="return confirm('Are you sure you want to delete this product?')">Delete</a>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="9" class="text-center py-5">
-                                        <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
-                                        <h5 class="text-muted">No products found</h5>
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                <div id="productsTableContainer">
+                    <?php
+                    // Display initial table content using the template
+                    include 'product_table_template.php'; 
+                    ?>
                 </div>
+
             </div>
         </div>
     </div>
 
-    <!-- Image Modal -->
     <div class="modal fade" id="imageModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -323,29 +329,109 @@
     </div>
 
     <script>
-        /* 🔥 CATEGORY DROPDOWN JS */
+        /* 🔥 UPDATED AJAX/FETCH PRODUCTS FUNCTION */
+        let fetchTimer;
+        
+        async function fetchProducts() {
+            clearTimeout(fetchTimer);
+            
+            // Debounce to prevent excessive requests
+            fetchTimer = setTimeout(async () => {
+                
+                const searchInput = document.getElementById('searchInput').value;
+                const categoryCheckboxes = document.querySelectorAll("input[name='category[]']:checked");
+                const selectedCategories = Array.from(categoryCheckboxes).map(cb => cb.value);
+
+                const tableContainer = document.getElementById('productsTableContainer');
+                const statusContainer = document.getElementById('filterStatusContainer');
+
+                // Build the query string for the AJAX request, including the 'ajax=true' flag
+                let queryString = `ajax=true&search=${encodeURIComponent(searchInput)}`;
+                selectedCategories.forEach(cat => {
+                    queryString += `&category[]=${encodeURIComponent(cat)}`;
+                });
+
+                // Show loading message in the table container
+                tableContainer.innerHTML = `<div id="loadingIndicator"><i class="fas fa-sync fa-spin me-2"></i> Loading products...</div>`;
+                
+                try {
+                    // Send the request to the current file (products.php) with the AJAX flag
+                    const response = await fetch(`products.php?${queryString}`);
+                    
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok.');
+                    }
+                    
+                    // Expecting JSON response now
+                    const data = await response.json();
+
+                    // Update the filter status container
+                    statusContainer.innerHTML = data.status_html;
+                    
+                    // Update the product table container
+                    tableContainer.innerHTML = data.table_html;
+
+                } catch (error) {
+                    console.error('Error fetching products:', error);
+                    statusContainer.innerHTML = ''; // Clear status if error occurs
+                    tableContainer.innerHTML = `
+                        <div class="alert alert-danger mt-3" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i> 
+                            An error occurred while loading products. Please try again.
+                        </div>`;
+                }
+            }, 300); // 300ms debounce time
+        }
+
+        /* 🚀 LIVE CATEGORY DROPDOWN JS */
         const categoryBtn = document.getElementById("categoryBtn");
         const categoryPanel = document.getElementById("categoryPanel");
         const applyBtn = document.getElementById("applyBtn");
         const clearBtn = document.getElementById("clearCatBtn");
+        const categoryCheckboxes = document.querySelectorAll("input[name='category[]']");
+
+        // Helper function to update the button text
+        function updateCategoryButtonText() {
+            const checkedCount = document.querySelectorAll("input[name='category[]']:checked").length;
+            categoryBtn.innerText = checkedCount === 0 
+                ? "Select Categories"
+                : checkedCount + " categories selected";
+        }
 
         categoryBtn.addEventListener("click", () => {
             categoryPanel.classList.toggle("show");
         });
 
+        // Event listener on each checkbox for instant filtering
+        categoryCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                updateCategoryButtonText();
+                fetchProducts(); // Trigger live search/filter
+            });
+        });
+
+        // 'Apply' button now only serves to close the panel
         applyBtn.addEventListener("click", () => {
             categoryPanel.classList.remove("show");
-            const checkedCount = document.querySelectorAll("input[name='category[]']:checked").length;
-            categoryBtn.innerText = checkedCount === 0 
-                ? "Select Categories"
-                : checkedCount + " categories selected";
         });
 
         clearBtn.addEventListener("click", () => {
-            document.querySelectorAll("input[name='category[]']").forEach(cb => cb.checked = false);
-            categoryBtn.innerText = "Select Categories";
+            let wasChecked = false;
+            categoryCheckboxes.forEach(cb => {
+                if (cb.checked) {
+                    cb.checked = false;
+                    wasChecked = true;
+                }
+            });
+            updateCategoryButtonText();
+            categoryPanel.classList.remove("show");
+            // Only fetch if something was actually unchecked
+            if (wasChecked) {
+                 fetchProducts(); 
+            }
         });
 
+        // Close dropdown when clicking outside
         document.addEventListener("click", (e) => {
             if (!categoryPanel.contains(e.target) && !categoryBtn.contains(e.target)) {
                 categoryPanel.classList.remove("show");
@@ -356,16 +442,23 @@
         function showImageModal(src) {
             document.getElementById('modalImage').src = src;
             document.getElementById('downloadImage').href = src;
-            new bootstrap.Modal(document.getElementById('imageModal')).show();
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                 new bootstrap.Modal(document.getElementById('imageModal')).show();
+            }
         }
 
         /* CSV EXPORT */
         function exportTableToCSV(filename) {
             let csv = [];
-            const rows = document.querySelectorAll("table tr");
+            const table = document.querySelector("#productsTableContainer table"); 
+            if (!table) {
+                alert("No products table found to export.");
+                return;
+            }
+            const rows = table.querySelectorAll("tr");
             for (let row of rows) {
                 const cols = row.querySelectorAll("td, th");
-                const rowData = Array.from(cols).map(col => `"${col.innerText.trim().replace(/"/g, '""')}"`);
+                const rowData = Array.from(cols).slice(0, -1).map(col => `"${col.innerText.trim().replace(/"/g, '""')}"`);
                 csv.push(rowData.join(","));
             }
             const csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
@@ -376,7 +469,6 @@
         }
     </script>
 
-    <!-- Core JS -->
     <script src="../assets/js/core/popper.min.js"></script>
     <script src="../assets/js/core/bootstrap.min.js"></script>
     <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
