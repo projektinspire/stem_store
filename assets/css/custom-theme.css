@@ -1,11 +1,47 @@
 /* Main Theme Colors */
 :root {
-    --primary-color: #320F44;    /* Main purple */
-    --primary-hover: #250a33;    /* Darker purple */
-    --secondary-color: #320F44;  /* Same as primary */
+    --primary-color: #6b1687;    /* Brand purple */
+    --primary-hover: #55116c;    /* Darker brand purple */
+    --secondary-color: #6b1687;  /* Footer/accents */
     --white: #ffffff;            /* White */
     --light-gray: #f8f9fa;       /* Very light gray for backgrounds */
     --dark-color: #212529;       /* Dark text */
+    --accent-teal: #0ebcd6;      /* Active pill color */
+}
+
+/* Force full-height and no internal scroll */
+#sidenav-main { height: 100vh !important; }
+#sidenav-main { display: flex !important; flex-direction: column !important; }
+#sidenav-main .sidenav-header { flex: 0 0 auto !important; }
+#sidenav-main .navbar-collapse { flex: 1 1 auto !important; height: auto !important; overflow: hidden !important; padding: 0 0.5rem !important; }
+.ps__rail-y, .ps__thumb-y, .ps__rail-x { display: none !important; }
+.sidenav.ps, .navbar-vertical.ps { overflow: hidden !important; padding-right: 0 !important; }
+/* Lock width to avoid jitter and ensure margin calc matches Argon defaults */
+#sidenav-main { min-width: 17.125rem !important; max-width: 17.125rem !important; z-index: 1050 !important; }
+
+/* Global: prevent horizontal scroll and keep layout within viewport */
+html, body {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+.root, html { scrollbar-gutter: stable both-edges; }
+body { overflow-y: scroll !important; }
+.main-content {
+    overflow-x: hidden;
+}
+/* Remove transitions that cause layout shake on load/hover */
+.main-content, .sidenav { transition: none !important; }
+
+/* Ensure main content respects sidebar width even when g-sidenav-show is present */
+@media (min-width: 992px) {
+  /* Account for ms-4 (1.5rem) left margin on aside */
+  .sidenav.fixed-start { margin-left: 1.5rem !important; transform: none !important; left: 0 !important; }
+  .g-sidenav-show .sidenav.fixed-start { transform: none !important; }
+  .sidenav.fixed-start + .main-content,
+  .g-sidenav-show .sidenav.fixed-start + .main-content {
+    margin-left: calc(17.125rem + 1.5rem) !important;
+  }
 }
 
 /* Sidebar Styling */
@@ -15,6 +51,8 @@
     box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.1) !important;
     transition: all 0.3s ease;
     border-right: 1px solid rgba(0, 0, 0, 0.1);
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
 }
 
 /* Navigation Links */
@@ -53,31 +91,21 @@
     filter: none !important;
 }
 
-.sidenav .nav-link {
-    color: rgba(255, 255, 255, 0.8) !important;
-    transition: all 0.3s ease;
-}
-
-.sidenav .nav-link:hover, 
-.sidenav .nav-link.active {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    color: white !important;
-}
 
 /* Top Navigation */
 .navbar-main {
-    background: var(--white) !important;
-    box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.1) !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    background: transparent !important;
+    box-shadow: none !important;
+    border-bottom: none !important;
     padding: 0.5rem 0;
 }
 
 .navbar-main .container-fluid {
-    background: var(--white) !important;
+    background: transparent !important;
 }
 
 .navbar-main .nav-link {
-    color: var(--primary-color) !important;
+    color: #ffffff !important;
 }
 
 /* Buttons */
@@ -131,14 +159,52 @@
 }
 
 .table thead th {
-    background-color: var(--primary-color) !important;
-    color: var(--white) !important;
+    background-color: #e9ecef !important;
+    color: #495057 !important;
     border: none !important;
     font-weight: 600;
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding: 0.75rem 1rem !important;
+}
+
+/* Ensure sticky table headers use the same gray look */
+thead.sticky-header {
+    background-color: #e9ecef !important;
+    box-shadow: none !important;
+}
+table.sticky-header thead th,
+.sticky-header thead th {
+    background-color: #e9ecef !important;
+    color: #495057 !important;
+}
+
+/* Gray search inputs inside card headers; keep primary button colored */
+.card-header .form-control,
+.card-header .form-select,
+.card-header .input-group-text {
+    background-color: #f1f3f5 !important;
+    border-color: #e5e7eb !important;
+    color: #495057 !important;
+}
+.card-header .form-control::placeholder {
+    color: #7a869a !important;
+    opacity: 1 !important;
+}
+.card-header .btn {
+    border-radius: 20px !important;
+}
+.card-header .btn.btn-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: #ffffff !important;
+}
+.card-header .btn.btn-secondary,
+.card-header .btn.btn-outline-secondary {
+    background-color: #e9ecef !important;
+    border-color: #e5e7eb !important;
+    color: #495057 !important;
 }
 
 .table > :not(:last-child) > :last-child > * {
@@ -229,8 +295,9 @@
 
 /* Footer */
 .footer {
-    background-color: var(--secondary-color) !important;
-    color: white !important;
+    background: transparent !important;
+    color: inherit !important;
+    border-top: 0 !important;
 }
 
 /* Custom Scrollbar */
@@ -262,4 +329,222 @@
     .sidenav.show {
         transform: translateX(0);
     }
+}
+
+/* Active nav link visibility */
+.navbar-nav .nav-link.active {
+    background: rgba(0, 219, 229, 0.12);
+    color: #111 !important;
+    border-radius: 8px;
+}
+.navbar-nav .nav-link.active .icon .text-sm,
+.navbar-nav .nav-link:hover .icon .text-sm {
+    filter: saturate(1.2) contrast(1.1);
+}
+
+/* Smooth hover for nav items */
+.navbar-nav .nav-link {
+    transition: background 180ms ease, color 180ms ease, transform 180ms ease;
+}
+.navbar-nav .nav-link:hover {
+    background: rgba(0,0,0,0.04);
+    transform: translateX(2px);
+}
+
+/* Page mount subtle fade */
+body {
+    animation: fadeIn 220ms ease-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Improve card and button feel */
+.btn {
+    transition: filter 160ms ease, transform 120ms ease;
+}
+.btn:active {
+    transform: translateY(1px) scale(0.99);
+}
+
+/* ===== Theming to match dashboard look ===== */
+/* Purple gradient top header */
+.bg-primary {
+    background-color: var(--primary-color) !important;
+}
+
+/* Cards: rounder corners and soft shadow */
+.card,
+.modal-content,
+.dropdown-menu {
+    border-radius: 24px !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+}
+.card .card-header {
+    border-top-left-radius: 24px !important;
+    border-top-right-radius: 24px !important;
+}
+.card { overflow: hidden; }
+
+/* Sidebar width and colors */
+.sidenav {
+    width: 17.125rem;
+}
+body.g-sidenav-pinned .main-content {
+    margin-left: calc(17.125rem + 1.5rem) !important;
+}
+
+/* Nav items: teal active pill with white text */
+.navbar-nav .nav-link.active {
+    background: #0ebcd6;
+    color: #ffffff !important;
+    border-radius: 10px;
+}
+.navbar-nav .nav-link.active .icon i,
+.navbar-nav .nav-link:hover .icon i {
+    color: #ffffff !important;
+}
+
+/* Icon circles look stronger */
+.icon.icon-shape {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+/* Dashboard KPI icon bubbles: force brand purple on all variants (keep words unchanged) */
+.card .icon.icon-shape.bg-gradient-primary,
+.card .icon.icon-shape.bg-gradient-success,
+.card .icon.icon-shape.bg-gradient-info,
+.card .icon.icon-shape.bg-gradient-danger,
+.card .icon.icon-shape.bg-primary,
+.card .icon.icon-shape.bg-success,
+.card .icon.icon-shape.bg-info,
+.card .icon.icon-shape.bg-danger {
+    background: var(--primary-color) !important;
+}
+.card .icon.icon-shape i {
+    color: #ffffff !important;
+}
+
+/* Inputs: pill-like for search bars */
+.form-control, .form-select {
+    border-radius: 20px !important;
+}
+
+/* Tables rounded container */
+.table-container {
+    border-radius: 24px;
+}
+
+/* Reduce purple header height to avoid visible seam line */
+.min-height-300 {
+    min-height: 180px !important;
+}
+
+/* Make the bottom edge under the header overlay white (hide purple seam) */
+.min-height-300.bg-primary::after {
+    height: 0 !important;
+    background: transparent !important;
+    content: '';
+}
+
+/* Remove any horizontal lines/separators */
+hr, .horizontal, .dropdown-divider {
+    display: none !important;
+    height: 0 !important;
+    border: 0 !important;
+    margin: 0 !important;
+}
+
+/* Ensure sidebar text is readable on white background */
+.sidenav .nav-link,
+.sidenav .nav-link .nav-link-text,
+.sidenav .icon i {
+    color: var(--primary-color) !important;
+}
+.sidenav .nav-link.active {
+    background-color: rgba(0,0,0,0.05) !important;
+    color: var(--primary-color) !important;
+}
+
+/* Remove gradient variants globally */
+.bg-gradient-primary {
+    background: var(--primary-color) !important;
+}
+
+/* Show nav labels when pinned even if a mini class lingers */
+body.g-sidenav-pinned .sidenav .nav-link-text {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: inline !important;
+}
+
+/* Reduce sidebar header padding and icon sizes */
+.sidenav .sidenav-header { padding: 6px 10px !important; }
+.sidenav .sidenav-header .navbar-brand { padding: 0 !important; margin: 0 !important; }
+.sidenav .sidenav-header .navbar-brand-img { max-height: 32px !important; width: auto !important; }
+.sidenav hr.horizontal { margin: 4px 0 !important; }
+.sidenav .navbar-nav { padding: 6px 0 !important; }
+.sidenav .navbar-nav .nav-item { margin: 4px 0 !important; }
+.sidenav .icon.icon-shape.icon-sm { width: 28px; height: 28px; }
+.sidenav .icon.icon-shape.icon-sm i { font-size: 0.9rem !important; }
+.navbar-vertical .navbar-collapse { overflow: hidden !important; }
+.navbar-vertical .navbar-nav { margin-right: 0 !important; }
+.sidenav .navbar-nav { padding-bottom: 0 !important; }
+.sidenav .nav-link .nav-link-text { white-space: normal !important; font-size: 0.88rem !important; line-height: 1.05 !important; }
+.sidenav .navbar-brand .font-weight-bold, .sidenav .navbar-brand span { font-size: 0.95rem !important; }
+
+/* Force sidenav visible when pinned */
+body.g-sidenav-pinned .sidenav {
+    transform: translateX(0) !important;
+}
+
+/* Ensure collapse panel in sidenav uses full width */
+body.g-sidenav-pinned .navbar-vertical .navbar-collapse {
+    width: 100% !important;
+}
+
+/* Sidebar nav pill look (like reference) */
+.sidenav .nav-link {
+    background: #ffffff !important;
+    border-radius: 12px !important;
+    margin: 6px 0.6rem !important;
+    padding: 8px 12px !important;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.06) !important;
+    box-sizing: border-box !important;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+.sidenav .nav-link:hover {
+    background: #ffffff !important;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.08) !important;
+}
+.sidenav .nav-link.active {
+    background: var(--accent-teal) !important;
+    color: #ffffff !important;
+}
+.sidenav .nav-link.active .icon i,
+.sidenav .nav-link.active .nav-link-text {
+    color: #ffffff !important;
+}
+
+/* Compact mode for shorter screens to ensure all labels fit without scroll */
+@media (max-height: 820px) {
+  #sidenav-main .sidenav-header { padding: 4px 8px !important; }
+  #sidenav-main .navbar-brand .font-weight-bold, #sidenav-main .navbar-brand span { font-size: 0.9rem !important; }
+  #sidenav-main .navbar-brand-img { max-height: 26px !important; }
+  #sidenav-main hr.horizontal { margin: 2px 0 !important; }
+  #sidenav-main .navbar-nav { padding: 4px 0 !important; }
+  #sidenav-main .navbar-nav .nav-item { margin: 3px 0 !important; }
+  #sidenav-main .nav-link { margin: 4px 0.6rem !important; padding: 6px 10px !important; border-radius: 10px !important; }
+  #sidenav-main .nav-link .nav-link-text { font-size: 0.84rem !important; line-height: 1.03 !important; }
+  #sidenav-main .icon.icon-shape.icon-sm { width: 24px; height: 24px; }
+  #sidenav-main .icon.icon-shape.icon-sm i { font-size: 0.8rem !important; }
+}
+
+@media (max-height: 700px) {
+  #sidenav-main .navbar-nav .nav-item { margin: 2px 0 !important; }
+  #sidenav-main .nav-link { margin: 3px 0.5rem !important; padding: 5px 9px !important; border-radius: 9px !important; }
+  #sidenav-main .nav-link .nav-link-text { font-size: 0.8rem !important; line-height: 1.02 !important; }
+  #sidenav-main .icon.icon-shape.icon-sm { width: 22px; height: 22px; }
+  #sidenav-main .icon.icon-shape.icon-sm i { font-size: 0.75rem !important; }
 }

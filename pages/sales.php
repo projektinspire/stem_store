@@ -20,6 +20,8 @@
   <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
   <!-- CSS Files -->
   <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/theme.css" />
+  <link rel="stylesheet" href="../assets/css/custom-theme.css?v=20251118" />
     <style>
   /* Cart Dropdown Styling */
 .cart-dropdown-menu {
@@ -119,7 +121,8 @@
         thead th {
             position: sticky;
             top: 0;
-            background-color: white;
+            background-color: #e9ecef;
+            color: #495057;
             z-index: 10;
             box-shadow: 0 2px 3px rgba(0,0,0,0.1);
             padding: 12px 10px;
@@ -181,9 +184,9 @@
     </style>
 </head>
 
-<body class="g-sidenav-show   bg-gray-100">
+<body class="g-sidenav-show g-sidenav-pinned  bg-gray-100">
   <div class="min-height-300 bg-primary position-absolute w-100"></div>
-<aside class="sidenav bg-white navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-4" id="sidenav-main" style="height: 100vh; position: fixed; overflow: hidden;">
+<aside class="sidenav bg-white navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl fixed-start ms-4" id="sidenav-main" style="height: 100vh; position: fixed; top: 0; bottom: 0; overflow: hidden;">
   <div class="sidenav-header">
     <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-xl-none" aria-hidden="true" id="iconSidenav"></i>
     <a class="navbar-brand m-0" href="../index2.php" target="_blank">
@@ -194,7 +197,7 @@
 
   <hr class="horizontal dark mt-0 mb-2">
 
-  <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main" style="height: calc(100vh - 100px); overflow-y: auto;">
+  <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main" style="overflow: hidden;">
     <ul class="navbar-nav">
 
       <li class="nav-item">
@@ -261,7 +264,7 @@
     </li>
 
       <li class="nav-item">
-        <a class="nav-link" href="../pages/register.html">
+        <a class="nav-link" href="../pages/register.php">
           <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
             <i class="fas fa-user-plus text-success text-sm opacity-10"></i>
           </div>
@@ -426,14 +429,66 @@ while ($row = $result->fetch_assoc()) {
     <div class="col-12">
       <div class="card mb-4">
         <div class="card-header pb-0">
-          <h6>All Orders</h6>
-          <form method="GET" action="" class="form-inline">
-            <input type="text" name="search" placeholder="Search by Order No" 
-                   value="<?= htmlspecialchars($search) ?>" class="form-control">
-            <input type="hidden" name="includeTax" value="<?= $includeTax ? '1' : '0' ?>"> <br>
-            <button type="submit" class="btn btn-primary ml-2">Search</button>
-          </form>
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">All Orders</h6>
+            <form method="GET" action="" class="form-inline d-flex orders-search-form">
+              <input id="orderSearchInput" type="text" name="search" placeholder="Search Order No" aria-label="Search Order No"
+                     value="<?= htmlspecialchars($search) ?>" class="form-control me-2" autocomplete="off">
+              <input type="hidden" name="includeTax" value="<?= $includeTax ? '1' : '0' ?>">
+              <button type="submit" class="btn btn-primary">Search</button>
+              <?php if ($search): ?>
+                <a href="?" class="btn btn-secondary ms-2">Clear</a>
+              <?php endif; ?>
+            </form>
+          </div>
         </div>
+        <script>
+          // Live filter (no refresh): filters rows by Order No on typing
+          document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('.orders-search-form');
+            const input = document.getElementById('orderSearchInput');
+            const tbody = document.getElementById('ordersTableBody') || document.querySelector('.table.align-items-center tbody');
+            if (!input || !tbody) return;
+
+            const NO_ROW_ID = 'ordersNoRows';
+            function ensureNoRowsRow() {
+              let row = document.getElementById(NO_ROW_ID);
+              if (!row) {
+                row = document.createElement('tr');
+                row.id = NO_ROW_ID;
+                const td = document.createElement('td');
+                td.colSpan = 10;
+                td.className = 'text-center py-4';
+                td.innerHTML = '<div class="text-center"><i class="fas fa-inbox fa-3x text-muted mb-3"></i><h6 class="text-muted">No orders found</h6></div>';
+                row.appendChild(td);
+                row.style.display = 'none';
+                tbody.appendChild(row);
+              }
+              return row;
+            }
+
+            function applyFilter() {
+              const val = (input.value || '').trim().replace(/^#/,'').toLowerCase();
+              const rows = Array.from(tbody.querySelectorAll('tr'))
+                .filter(r => r.id !== NO_ROW_ID);
+              let visible = 0;
+              rows.forEach(row => {
+                const id = (row.dataset.orderId || '').toLowerCase();
+                const show = val.length >= 2 ? id.includes(val) : true;
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
+              });
+              const emptyRow = ensureNoRowsRow();
+              emptyRow.style.display = visible === 0 ? '' : 'none';
+            }
+
+            input.addEventListener('input', function () { applyFilter(); });
+            form?.addEventListener('submit', function (e) { e.preventDefault(); applyFilter(); });
+
+            // Initial pass
+            applyFilter();
+          });
+        </script>
         <div class="card-body px-0 pt-0 pb-2">
           <div class="table-responsive p-0">
             <table class="table align-items-center mb-0">
@@ -448,10 +503,10 @@ while ($row = $result->fetch_assoc()) {
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="ordersTableBody">
                 <?php if (count($orders) > 0): ?>
                     <?php foreach ($orders as $order): ?>
-                        <tr>
+                        <tr data-order-id="<?= $order['OrderID'] ?>">
                             <td>
                                 <a href="#" class="text-primary fw-bold order-link" data-order-id="<?= $order['OrderID'] ?>">
                                     #<?= htmlspecialchars($order['OrderID']) ?>

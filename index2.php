@@ -264,69 +264,69 @@ $payableAmount = $cartSubtotal;
                     </ul>
 <!-- Product Selection Modal -->
 <div class="modal fade" id="productSelectionModal" tabindex="-1" aria-labelledby="productSelectionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" style="max-width: 450px;">
-        <div class="modal-content" style="border-radius: 6px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);">
-            <!-- Modal Header -->
-            <div class="modal-header" style="padding: 10px 15px;">
-                <h5 class="modal-title" id="productSelectionModalLabel" style="font-size: 16px;">Select Product</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-lg" style="max-width: 460px;">
+        <div class="modal-content" style="border-radius: 8px;">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productSelectionModalLabel">Select Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <!-- Search Input -->
+                <input type="text" id="productSearchInput" class="form-control mb-3" placeholder="Search products..." autofocus>
 
-            <!-- Modal Body -->
-            <div class="modal-body" style="padding: 15px; max-height: 400px; overflow-y: auto;">
-<!-- Product List -->
                 <ul class="list-group" id="productList">
                     <?php if ($products): ?>
-                        <?php 
-                        // Sort products alphabetically by ProductName
-                        usort($products, function($a, $b) {
-                            return strcasecmp($a['ProductName'], $b['ProductName']);
-                        });
+                        <?php usort($products, fn($a,$b) => strcasecmp($a['ProductName'], $b['ProductName'])); ?>
+                        <?php foreach ($products as $product): 
+                            $stock = (int)$product['Quantity'];
+                            $outOfStock = $stock <= 0;
                         ?>
-                        <?php foreach ($products as $product): ?>
-                            <?php if (!empty(trim($product['ProductName']))): ?>
-                            <li class="list-group-item d-flex justify-content-between align-items-start product-item"
-                                data-name="<?php echo strtolower(htmlspecialchars($product['ProductName'])); ?>"
-                                data-code="<?php echo isset($product['ProductCode']) ? strtolower(htmlspecialchars($product['ProductCode'])) : ''; ?>"
-                                data-category="<?php echo isset($product['Category']) ? strtolower(htmlspecialchars($product['Category'])) : ''; ?>">
-                                <!-- Product Details -->
-                                <div class="d-flex align-items-center">
-                                    <img src="pages/<?php echo $product['Image']; ?>" alt="<?php echo htmlspecialchars($product['ProductName']); ?>" 
-                                        class="rounded" style="width: 35px; height: 35px; margin-right: 10px;">
-                                    <div class="product-details">
-                                        <p class="mb-0" style="font-size: 13px;"><?php echo htmlspecialchars($product['ProductName']); ?></p>
-                                        <p class="text-muted mb-0" style="font-size: 12px;">Price: Tsh <?php echo $product['prod_price']; ?></p>
-                                        <p class="text-muted mb-0" style="font-size: 12px;">Available: <?php echo $product['Quantity'] > 0 ? $product['Quantity'] : 'Out of stock'; ?></p>
+                            <li class="list-group-item d-flex justify-content-between align-items-center product-item p-3"
+                                data-name="<?= strtolower(htmlspecialchars($product['ProductName'])) ?>">
+                                <div class="d-flex align-items-center flex-grow-1">
+                                    <img src="pages/<?= htmlspecialchars($product['Image']) ?>" 
+                                         class="rounded me-3" style="width:50px;height:50px;object-fit:cover;">
+                                    <div>
+                                        <strong class="d-block"><?= htmlspecialchars($product['ProductName']) ?></strong>
+                                        <small class="text-muted">
+                                            Price: Tsh <?= number_format($product['prod_price']) ?> 
+                                            | Stock: <span class="<?= $stock <= 5 ? 'text-danger fw-bold' : '' ?>">
+                                                <?= $stock > 0 ? $stock : 'Out of Stock' ?>
+                                            </span>
+                                        </small>
                                     </div>
                                 </div>
 
-                                <!-- Editable Fields -->
-                                <div class="d-flex flex-column align-items-center">
-                                    <input type="number" id="quantity-<?php echo $product['ID']; ?>" class="form-control form-control-sm" 
-                                        min="1" max="<?php echo $product['Quantity']; ?>" value="1" style="width: 70px;" 
-                                        <?php echo $product['Quantity'] > 0 ? '' : 'disabled'; ?>>
-                                    <input type="hidden" id="price-<?php echo $product['ID']; ?>" value="<?php echo $product['prod_price']; ?>">
-                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="number" 
+                                           id="quantity-<?= $product['ID'] ?>" 
+                                           class="form-control form-control-sm text-center"
+                                           value="1" 
+                                           min="1" 
+                                           max="<?= $stock ?>" 
+                                           style="width:70px;"
+                                           <?= $outOfStock ? 'disabled' : '' ?>
+                                           oninput="validateQuantity(this, <?= $stock ?>, <?= $product['ID'] ?>)">
 
-                                <!-- Add Button -->
-                                <button type="button" class="btn btn-primary btn-sm" 
-                                    onclick="addToCart('<?php echo $product['ID']; ?>')" 
-                                    <?php echo $product['Quantity'] > 0 ? '' : 'disabled'; ?>>
-                                    Add
-                                </button>
+                                    <input type="hidden" id="price-<?= $product['ID'] ?>" value="<?= $product['prod_price'] ?>">
+
+                                    <button type="button" 
+                                            id="addBtn-<?= $product['ID'] ?>"
+                                            class="btn btn-sm <?= $outOfStock ? 'btn-secondary' : 'btn-primary' ?>"
+                                            onclick="addToCart('<?= $product['ID'] ?>')"
+                                            <?= $outOfStock ? 'disabled' : '' ?>>
+                                        <?= $outOfStock ? 'No Stock' : 'Add' ?>
+                                    </button>
+                                </div>
                             </li>
-                            <?php endif; ?>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <li class="list-group-item text-center">No products found.</li>
+                        <li class="list-group-item text-center text-muted py-4">No products found</li>
                     <?php endif; ?>
                 </ul>
             </div>
-
-            <!-- Modal Footer -->
-            <div class="modal-footer" style="padding: 10px;">
-                <button type="button" class="btn btn-danger btn-sm" onclick="fastCancelAndShowCart()">Cancel</button>
-                <!-- <button type="button" class="btn btn-warning btn-sm" onclick="holdOrder()">Hold</button> -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>
@@ -374,41 +374,56 @@ $payableAmount = $cartSubtotal;
     }
 
     // Function to handle adding a product to cart
-    function addToCart(productId) {
-        const price = parseFloat(document.getElementById(`price-${productId}`).value);
-        const quantity = parseFloat(document.getElementById(`quantity-${productId}`).value);
+  // Updated: Add to cart SILENTLY – no popup message
+function addToCart(productId) {
+    const priceInput = document.getElementById(`price-${productId}`);
+    const quantityInput = document.getElementById(`quantity-${productId}`);
+    const addBtn = document.getElementById(`addBtn-${productId}`);
 
-        if (isNaN(quantity) || quantity <= 0 || isNaN(price) || price <= 0) {
-            alert('Please enter valid quantity and price.');
-            return;
+    if (!priceInput || !quantityInput || !addBtn) return;
+
+    const price = parseFloat(priceInput.value);
+    const quantity = parseFloat(quantityInput.value);
+
+    if (isNaN(quantity) || quantity <= 0 || isNaN(price)) return;
+
+    // Show loading spinner
+    const originalText = addBtn.innerHTML;
+    addBtn.disabled = true;
+    addBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    fetch('add_to_cart.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `product_id=${productId}&quantity=${quantity}&price=${price}`
+    })
+    .then(r => r.text())
+    .then(data => {
+        if (data.trim().toLowerCase().includes("successfully") || data.trim() === "1") {
+            // SUCCESS – just reset quantity, stay in modal
+            quantityInput.value = 1;
+            itemsAddedToCart = true;
+
+            // Optional: tiny visual feedback (very subtle)
+            addBtn.innerHTML = '<i class="fas fa-check text-white"></i>';
+            setTimeout(() => {
+                addBtn.innerHTML = 'Add';
+                addBtn.disabled = false;
+            }, 800);
+        } else {
+            alert("Error: " + data);
+            addBtn.innerHTML = originalText;
+            addBtn.disabled = false;
         }
-
-        fetch('add_to_cart.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: `product_id=${productId}&quantity=${quantity}&price=${price}`
-        })
-        .then(response => response.text())
-        .then(data => {
-            if (data.includes("successfully")) {
-                alert("Product added to cart!");
-                itemsAddedToCart = true; // Track that items have been added
-                
-                // Reset quantity input to 1 after adding
-                document.getElementById(`quantity-${productId}`).value = 1;
-            } else {
-                alert(data);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while adding the product to cart.');
-        });
-    }
-
-    // Function to open product selection modal
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Network error");
+        addBtn.innerHTML = originalText;
+        addBtn.disabled = false;
+    });
+}    
+// Function to open product selection modal
     function openProductSelectionModal() {
         toggleCartVisibility(false);
         itemsAddedToCart = false; // Reset the flag when opening the modal
@@ -1230,7 +1245,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 </script>
+<script>
+// Real-time validation: Disable "Add" button if quantity > stock
+function validateQuantity(input, availableStock, productId) {
+    const qty = parseInt(input.value) || 0;
+    const addBtn = document.getElementById('addBtn-' + productId);
 
+    if (qty > availableStock || qty < 1 || availableStock <= 0) {
+        addBtn.disabled = true;
+        addBtn.classList.remove('btn-primary');
+        addBtn.classList.add('btn-secondary');
+        addBtn.textContent = 'Invalid';
+    } else {
+        addBtn.disabled = false;
+        addBtn.classList.remove('btn-secondary');
+        addBtn.classList.add('btn-primary');
+        addBtn.textContent = 'Add';
+    }
+}
+
+// Also run validation on page load (in case of pre-filled values)
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[id^="quantity-"]').forEach(input => {
+        const productId = input.id.split('-')[1];
+        const stock = parseInt(input.max);
+        validateQuantity(input, stock, productId);
+    });
+});
+</script>
       <footer class="footer pt-3  ">
         <div class="container-fluid">
           <div class="row align-items-center justify-content-lg-between">

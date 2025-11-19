@@ -66,59 +66,15 @@ $payableAmount = $cartSubtotal;
   <link href="./assets/css/nucleo-svg.css" rel="stylesheet" />
   <!-- Font Awesome Icons -->
   <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
-  <link href="./assets/css/nucleo-svg.css" rel="stylesheet" />
   <!-- CSS Files -->
   <link id="pagestyle" href="./assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
-  <link rel="stylesheet" href="../assets/css/theme.css" />
-            border: 1px solid #ddd;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        thead th {
-            position: sticky;
-            top: 0;
-            background-color: white;
-            z-index: 2;
-        }
-        .dots {
-            cursor: pointer;
-            font-size: 18px;
-            color: #333;
-        }
-        .popup {
-            display: none;
-            position: fixed;
-            z-index: 100;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            background-color: white;
-            padding: 20px;
-            border-radius: 5px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        @media (max-width: 768px) {
-            .table-responsive {
-                max-height: 300px;
-            }
-        }
-
-    </style>
+  <link rel="stylesheet" href="./assets/css/theme.css" />
 
 </head>
 <body class="g-sidenav-show   bg-gray-100">
 <div class="min-height-300 bg-primary position-absolute w-100"></div>
 
-<?php include "side_navigations/navigations.php" ?>
+<?php include "../side_navigations/navigations.php" ?>
 
 <main class="main-content position-relative border-radius-lg">
     <!-- Navbar -->
@@ -308,74 +264,69 @@ $payableAmount = $cartSubtotal;
                     </ul>
 <!-- Product Selection Modal -->
 <div class="modal fade" id="productSelectionModal" tabindex="-1" aria-labelledby="productSelectionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" style="max-width: 450px;">
-        <div class="modal-content" style="border-radius: 6px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);">
-            <!-- Modal Header -->
-            <div class="modal-header" style="padding: 10px 15px;">
-                <h5 class="modal-title" id="productSelectionModalLabel" style="font-size: 16px;">Select Product</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-lg" style="max-width: 460px;">
+        <div class="modal-content" style="border-radius: 8px;">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productSelectionModalLabel">Select Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <!-- Search Input -->
+                <input type="text" id="productSearchInput" class="form-control mb-3" placeholder="Search products..." autofocus>
 
-            <!-- Modal Body -->
-            <div class="modal-body" style="padding: 15px; max-height: 400px; overflow-y: auto;">
-                <!-- Search Input and Button -->
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control form-control-sm" placeholder="Search by Product Name" id="productSearchInput">
-                    <button class="btn btn-success btn-sm" type="button" onclick="searchProducts()">Search</button>
-                    <button class="btn btn-secondary btn-sm" type="button" onclick="clearSearch()">Clear</button>
-                </div>
-
-                <!-- Product List -->
                 <ul class="list-group" id="productList">
                     <?php if ($products): ?>
-                        <?php 
-                        // Sort products alphabetically by ProductName
-                        usort($products, function($a, $b) {
-                            return strcasecmp($a['ProductName'], $b['ProductName']);
-                        });
+                        <?php usort($products, fn($a,$b) => strcasecmp($a['ProductName'], $b['ProductName'])); ?>
+                        <?php foreach ($products as $product): 
+                            $stock = (int)$product['Quantity'];
+                            $outOfStock = $stock <= 0;
                         ?>
-                        <?php foreach ($products as $product): ?>
-                            <?php if (!empty(trim($product['ProductName']))): ?>
-                            <li class="list-group-item d-flex justify-content-between align-items-start product-item"
-                                data-name="<?php echo strtolower(htmlspecialchars($product['ProductName'])); ?>">
-                                <!-- Product Details -->
-                                <div class="d-flex align-items-center">
-                                    <img src="pages/<?php echo $product['Image']; ?>" alt="<?php echo htmlspecialchars($product['ProductName']); ?>" 
-                                        class="rounded" style="width: 35px; height: 35px; margin-right: 10px;">
-                                    <div class="product-details">
-                                        <p class="mb-0" style="font-size: 13px;"><?php echo htmlspecialchars($product['ProductName']); ?></p>
-                                        <p class="text-muted mb-0" style="font-size: 12px;">Price: Tsh <?php echo $product['prod_price']; ?></p>
-                                        <p class="text-muted mb-0" style="font-size: 12px;">Available: <?php echo $product['Quantity'] > 0 ? $product['Quantity'] : 'Out of stock'; ?></p>
+                            <li class="list-group-item d-flex justify-content-between align-items-center product-item p-3"
+                                data-name="<?= strtolower(htmlspecialchars($product['ProductName'])) ?>">
+                                <div class="d-flex align-items-center flex-grow-1">
+                                    <img src="pages/<?= htmlspecialchars($product['Image']) ?>" 
+                                         class="rounded me-3" style="width:50px;height:50px;object-fit:cover;">
+                                    <div>
+                                        <strong class="d-block"><?= htmlspecialchars($product['ProductName']) ?></strong>
+                                        <small class="text-muted">
+                                            Price: Tsh <?= number_format($product['prod_price']) ?> 
+                                            | Stock: <span class="<?= $stock <= 5 ? 'text-danger fw-bold' : '' ?>">
+                                                <?= $stock > 0 ? $stock : 'Out of Stock' ?>
+                                            </span>
+                                        </small>
                                     </div>
                                 </div>
 
-                                <!-- Editable Fields -->
-                                <div class="d-flex flex-column align-items-center">
-                                    <input type="number" id="quantity-<?php echo $product['ID']; ?>" class="form-control form-control-sm" 
-                                        min="1" max="<?php echo $product['Quantity']; ?>" value="1" style="width: 70px;" 
-                                        <?php echo $product['Quantity'] > 0 ? '' : 'disabled'; ?>>
-                                    <input type="hidden" id="price-<?php echo $product['ID']; ?>" value="<?php echo $product['prod_price']; ?>">
-                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="number" 
+                                           id="quantity-<?= $product['ID'] ?>" 
+                                           class="form-control form-control-sm text-center"
+                                           value="1" 
+                                           min="1" 
+                                           max="<?= $stock ?>" 
+                                           style="width:70px;"
+                                           <?= $outOfStock ? 'disabled' : '' ?>
+                                           oninput="validateQuantity(this, <?= $stock ?>, <?= $product['ID'] ?>)">
 
-                                <!-- Add Button -->
-                                <button type="button" class="btn btn-primary btn-sm" 
-                                    onclick="addToCart('<?php echo $product['ID']; ?>')" 
-                                    <?php echo $product['Quantity'] > 0 ? '' : 'disabled'; ?>>
-                                    Add
-                                </button>
+                                    <input type="hidden" id="price-<?= $product['ID'] ?>" value="<?= $product['prod_price'] ?>">
+
+                                    <button type="button" 
+                                            id="addBtn-<?= $product['ID'] ?>"
+                                            class="btn btn-sm <?= $outOfStock ? 'btn-secondary' : 'btn-primary' ?>"
+                                            onclick="addToCart('<?= $product['ID'] ?>')"
+                                            <?= $outOfStock ? 'disabled' : '' ?>>
+                                        <?= $outOfStock ? 'No Stock' : 'Add' ?>
+                                    </button>
+                                </div>
                             </li>
-                            <?php endif; ?>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <li class="list-group-item text-center">No products found.</li>
+                        <li class="list-group-item text-center text-muted py-4">No products found</li>
                     <?php endif; ?>
                 </ul>
             </div>
-
-            <!-- Modal Footer -->
-            <div class="modal-footer" style="padding: 10px;">
-                <button type="button" class="btn btn-danger btn-sm" onclick="fastCancelAndShowCart()">Cancel</button>
-                <!-- <button type="button" class="btn btn-warning btn-sm" onclick="holdOrder()">Hold</button> -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>
@@ -386,25 +337,31 @@ $payableAmount = $cartSubtotal;
     // Variable to track if items have been added to cart
     let itemsAddedToCart = false;
 
-    // Function to search products by name
-    function searchProducts() {
+    // Function to filter products by name
+    function filterProducts() {
         const searchInput = document.getElementById('productSearchInput').value.trim().toLowerCase();
         const productItems = document.querySelectorAll('.product-item');
-        let hasResults = false;
+        let hasVisibleItems = false;
 
         productItems.forEach(item => {
-            const productName = item.getAttribute('data-name');
-            if (productName.includes(searchInput)) {
-                item.style.display = 'flex';
-                hasResults = true;
-            } else {
-                item.style.display = 'none';
-            }
+            const productName = item.getAttribute('data-name').toLowerCase();
+            const productCode = item.getAttribute('data-code') ? item.getAttribute('data-code').toLowerCase() : '';
+            const productCategory = item.querySelector('.product-category') ? 
+                                 item.querySelector('.product-category').textContent.toLowerCase() : '';
+            
+            // Search in name, code, and category
+            const isVisible = productName.includes(searchInput) || 
+                             productCode.includes(searchInput) ||
+                             productCategory.includes(searchInput);
+            
+            item.style.display = isVisible ? 'flex' : 'none';
+            if (isVisible) hasVisibleItems = true;
         });
+    }
 
-        if (!hasResults) {
-            alert('No products match your search!');
-        }
+    // Function to handle search button click
+    function searchProducts() {
+        filterProducts();
     }
 
     // Function to clear search and reset the list
@@ -417,41 +374,56 @@ $payableAmount = $cartSubtotal;
     }
 
     // Function to handle adding a product to cart
-    function addToCart(productId) {
-        const price = parseFloat(document.getElementById(`price-${productId}`).value);
-        const quantity = parseFloat(document.getElementById(`quantity-${productId}`).value);
+  // Updated: Add to cart SILENTLY – no popup message
+function addToCart(productId) {
+    const priceInput = document.getElementById(`price-${productId}`);
+    const quantityInput = document.getElementById(`quantity-${productId}`);
+    const addBtn = document.getElementById(`addBtn-${productId}`);
 
-        if (isNaN(quantity) || quantity <= 0 || isNaN(price) || price <= 0) {
-            alert('Please enter valid quantity and price.');
-            return;
+    if (!priceInput || !quantityInput || !addBtn) return;
+
+    const price = parseFloat(priceInput.value);
+    const quantity = parseFloat(quantityInput.value);
+
+    if (isNaN(quantity) || quantity <= 0 || isNaN(price)) return;
+
+    // Show loading spinner
+    const originalText = addBtn.innerHTML;
+    addBtn.disabled = true;
+    addBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    fetch('add_to_cart.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `product_id=${productId}&quantity=${quantity}&price=${price}`
+    })
+    .then(r => r.text())
+    .then(data => {
+        if (data.trim().toLowerCase().includes("successfully") || data.trim() === "1") {
+            // SUCCESS – just reset quantity, stay in modal
+            quantityInput.value = 1;
+            itemsAddedToCart = true;
+
+            // Optional: tiny visual feedback (very subtle)
+            addBtn.innerHTML = '<i class="fas fa-check text-white"></i>';
+            setTimeout(() => {
+                addBtn.innerHTML = 'Add';
+                addBtn.disabled = false;
+            }, 800);
+        } else {
+            alert("Error: " + data);
+            addBtn.innerHTML = originalText;
+            addBtn.disabled = false;
         }
-
-        fetch('add_to_cart.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: `product_id=${productId}&quantity=${quantity}&price=${price}`
-        })
-        .then(response => response.text())
-        .then(data => {
-            if (data.includes("successfully")) {
-                alert("Product added to cart!");
-                itemsAddedToCart = true; // Track that items have been added
-                
-                // Reset quantity input to 1 after adding
-                document.getElementById(`quantity-${productId}`).value = 1;
-            } else {
-                alert(data);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while adding the product to cart.');
-        });
-    }
-
-    // Function to open product selection modal
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Network error");
+        addBtn.innerHTML = originalText;
+        addBtn.disabled = false;
+    });
+}    
+// Function to open product selection modal
     function openProductSelectionModal() {
         toggleCartVisibility(false);
         itemsAddedToCart = false; // Reset the flag when opening the modal
@@ -689,6 +661,126 @@ $payableAmount = $cartSubtotal;
 
     </nav>
     <!-- End Navbar -->
+   <?php
+include '../connection.php'; // Include DB connection
+
+// Get today's date
+$today = date('Y-m-d');
+
+// === Card 1: Staff ===
+$staffQuery = "SELECT COUNT(*) as total_staff FROM users";
+$staffResult = $conn->query($staffQuery)->fetch_assoc();
+$totalStaff = $staffResult['total_staff'];
+
+// === Card 2: Products (count distinct product types) ===
+$productQuery = "SELECT COUNT(*) as total_products FROM products";
+$productResult = $conn->query($productQuery)->fetch_assoc();
+$totalProducts = $productResult['total_products'];
+
+// === Card 3: Orders Today ===
+$ordersTodayQuery = "SELECT COUNT(*) as total_orders_today FROM orders WHERE DATE(AddedDate) = ?";
+$stmt = $conn->prepare($ordersTodayQuery);
+$stmt->bind_param("s", $today);
+$stmt->execute();
+$ordersTodayResult = $stmt->get_result()->fetch_assoc();
+$totalOrdersToday = $ordersTodayResult['total_orders_today'] ?? 0;
+
+// === Card 4: Total Cost (sum of prod_price) ===
+$totalCostQuery = "SELECT SUM(prod_price) as total_cost FROM products";
+$totalCostResult = $conn->query($totalCostQuery)->fetch_assoc();
+$totalCost = $totalCostResult['total_cost'] ?? 0;
+
+$conn->close();
+?>
+
+<!-- HTML to display the cards -->
+<div class="container-fluid py-4">
+  <div class="row">
+    <!-- Card 1: Staff -->
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-uppercase font-weight-bold">Staff</p>
+                <h5 class="font-weight-bolder"><?= number_format($totalStaff, 0) ?></h5>
+              </div>
+            </div>
+            <div class="col-4 text-end">
+              <div class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle">
+                <i class="ni ni-single-02 text-lg opacity-10" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Products -->
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-uppercase font-weight-bold">Products</p>
+                <h5 class="font-weight-bolder"><?= number_format($totalProducts, 0) ?></h5>
+              </div>
+            </div>
+            <div class="col-4 text-end">
+              <div class="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle">
+                <i class="ni ni-box-2 text-lg opacity-10" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Today's Orders -->
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-uppercase font-weight-bold">Orders Today</p>
+                <h5 class="font-weight-bolder"><?= number_format($totalOrdersToday, 0) ?></h5>
+              </div>
+            </div>
+            <div class="col-4 text-end">
+              <div class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle">
+                <i class="ni ni-delivery-fast text-lg opacity-10" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Total Cost -->
+    <div class="col-xl-3 col-sm-6">
+      <div class="card">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-8">
+              <div class="numbers">
+                <p class="text-sm mb-0 text-uppercase font-weight-bold">Total Cost</p>
+                <h5 class="font-weight-bolder"><?= number_format($totalCost, 0) ?></h5>
+              </div>
+            </div>
+            <div class="col-4 text-end">
+              <div class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle">
+                <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 <?php
@@ -914,24 +1006,55 @@ while ($row = $result->fetch_assoc()) {
                                             </td> -->
                                             <td>
                                                 <div class="dropdown">
-                                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
-                                                            id="actionDropdown<?= $order['OrderID'] ?>" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <i class="fas fa-ellipsis-v"></i>
+                                                    <button class="btn btn-sm btn-primary dropdown-toggle d-flex align-items-center" type="button" 
+                                                            id="actionDropdown<?= $order['OrderID'] ?>" data-bs-toggle="dropdown" 
+                                                            aria-expanded="<?= $order === reset($orders) ? 'true' : 'false' ?>"
+                                                            style="min-width: 100px; justify-content: space-between;">
+                                                        <span>Actions</span>
+                                                        <i class="fas fa-caret-down ms-2"></i>
                                                     </button>
-                                                    <ul class="dropdown-menu" aria-labelledby="actionDropdown<?= $order['OrderID'] ?>">
-                                                        <li>
-                                                            <h6 class="dropdown-header">Order Actions</h6>
+                                                    <ul class="dropdown-menu show" aria-labelledby="actionDropdown<?= $order['OrderID'] ?>" 
+                                                        style="min-width: 200px; padding: 0.5rem 0; border: 1px solid rgba(0,0,0,.15); border-radius: 0.375rem; box-shadow: 0 0.5rem 1rem rgba(0,0,0,.175);">
+                                                        <li class="px-3 py-1">
+                                                            <h6 class="dropdown-header text-uppercase fw-bold" style="font-size: 0.7rem;">Order #<?= $order['OrderID'] ?></h6>
                                                         </li>
-                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li><hr class="dropdown-divider my-1"></li>
                                                         <li>
-                                                            <a href="pages/edit_order.php?order_id=<?= $order['OrderID'] ?>" class="dropdown-item">
-                                                                <i class="fas fa-edit text-primary"></i> Edit Order
+                                                            <form method="POST" action="pages/update_status.php" class="d-inline w-100">
+                                                                <input type="hidden" name="order_id" value="<?= $order['OrderID'] ?>">
+                                                                <button type="submit" name="status" value="Approved" class="dropdown-item d-flex align-items-center py-2">
+                                                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                                                    <span>Approve Order</span>
+                                                                    <?php if($order['Status'] === 'Approved'): ?>
+                                                                        <i class="fas fa-check ms-auto text-success"></i>
+                                                                    <?php endif; ?>
+                                                                </button>
+                                                            </form>
+                                                        </li>
+                                                        <li>
+                                                            <form method="POST" action="pages/update_status.php" class="d-inline w-100">
+                                                                <input type="hidden" name="order_id" value="<?= $order['OrderID'] ?>">
+                                                                <button type="submit" name="status" value="Rejected" class="dropdown-item d-flex align-items-center py-2">
+                                                                    <i class="fas fa-times-circle text-danger me-2"></i>
+                                                                    <span>Reject Order</span>
+                                                                    <?php if($order['Status'] === 'Rejected'): ?>
+                                                                        <i class="fas fa-check ms-auto text-danger"></i>
+                                                                    <?php endif; ?>
+                                                                </button>
+                                                            </form>
+                                                        </li>
+                                                        <li><hr class="dropdown-divider my-1"></li>
+                                                        <li>
+                                                            <a href="pages/edit_order.php?order_id=<?= $order['OrderID'] ?>" class="dropdown-item d-flex align-items-center py-2">
+                                                                <i class="fas fa-edit text-primary me-2"></i>
+                                                                <span>Edit Order</span>
+                                                                <i class="fas fa-external-link-alt ms-auto text-muted" style="font-size: 0.7rem;"></i>
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <button class="dropdown-item text-danger delete-order" data-order-id="<?= $order['OrderID'] ?>">
-                                                                <i class="fas fa-trash"></i> Delete Order
-                                                            </button>
+                                                            <button class="dropdown-item d-flex align-items-center py-2 text-danger delete-order" data-order-id="<?= $order['OrderID'] ?>">
+                                                                <i class="fas fa-trash-alt me-2"></i>
+                                                                <span>Delete Order</span>
                                                         </li>
                                                     </ul>
                                                 </div>
@@ -1122,7 +1245,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 </script>
+<script>
+// Real-time validation: Disable "Add" button if quantity > stock
+function validateQuantity(input, availableStock, productId) {
+    const qty = parseInt(input.value) || 0;
+    const addBtn = document.getElementById('addBtn-' + productId);
 
+    if (qty > availableStock || qty < 1 || availableStock <= 0) {
+        addBtn.disabled = true;
+        addBtn.classList.remove('btn-primary');
+        addBtn.classList.add('btn-secondary');
+        addBtn.textContent = 'Invalid';
+    } else {
+        addBtn.disabled = false;
+        addBtn.classList.remove('btn-secondary');
+        addBtn.classList.add('btn-primary');
+        addBtn.textContent = 'Add';
+    }
+}
+
+// Also run validation on page load (in case of pre-filled values)
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[id^="quantity-"]').forEach(input => {
+        const productId = input.id.split('-')[1];
+        const stock = parseInt(input.max);
+        validateQuantity(input, stock, productId);
+    });
+});
+</script>
       <footer class="footer pt-3  ">
         <div class="container-fluid">
           <div class="row align-items-center justify-content-lg-between">

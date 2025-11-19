@@ -28,6 +28,8 @@ STEM STORE
   <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
   <!-- CSS Files -->
   <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/theme.css" />
+  <link rel="stylesheet" href="../assets/css/custom-theme.css?v=20251118" />
 
   <style>
 .center-button {
@@ -119,7 +121,7 @@ STEM STORE
     </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="register.html">
+          <a class="nav-link" href="register.php">
             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
               <i class="fas fa-user-plus text-success text-sm opacity-10"></i>
             </div>
