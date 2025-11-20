@@ -262,8 +262,8 @@ $payableAmount = $cartSubtotal;
                                     <div>
                                         <strong class="d-block"><?= htmlspecialchars($product['ProductName']) ?></strong>
                                         <small class="text-muted">
-                                            Price: Tsh <?= number_format($product['prod_price']) ?> 
-                                            | Stock: <span class="<?= $stock <= 5 ? 'text-danger fw-bold' : '' ?>">
+                                           
+                                            Stock: <span class="<?= $stock <= 5 ? 'text-danger fw-bold' : '' ?>">
                                                 <?= $stock > 0 ? $stock : 'Out of Stock' ?>
                                             </span>
                                         </small>
@@ -824,6 +824,9 @@ while ($row = $result->fetch_assoc()) {
         'OrderedPrice' => $row['OrderedPrice']
     ];
 }
+
+// Convert PHP array to JSON for use in JavaScript
+$ordersJson = json_encode($orders);
 ?>
 
 <style>
@@ -904,7 +907,7 @@ while ($row = $result->fetch_assoc()) {
                                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Order Date</th>
                                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
                                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Store keeper Note</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Actions</th>
+                                    
                                 </tr>
                             </thead>
                             <tbody>
@@ -931,8 +934,8 @@ while ($row = $result->fetch_assoc()) {
                                                     <div>
                                                         <div class="text-xs">
                                                             <strong><?= htmlspecialchars($order['Items'][0]['ProductName']) ?></strong><br>
-                                                            Qty: <?= htmlspecialchars($order['Items'][0]['Quantity']) ?> @ 
-                                                            Tsh <?= number_format($order['Items'][0]['OrderedPrice'], 2) ?>
+                                                            Qty: <?= htmlspecialchars($order['Items'][0]['Quantity']) ?> 
+                                                          
                                                         </div>
                                                         <span class="toggle-items" data-order-id="<?= $order['OrderID'] ?>" title="View more items">
                                                             +<?= count($order['Items']) - 1 ?> more
@@ -976,59 +979,7 @@ while ($row = $result->fetch_assoc()) {
                                                 <?php endif; ?>
                                             </td>
                                             <td>
-                                                <div class="dropdown">
-                                                    <button class="btn btn-sm btn-primary dropdown-toggle d-flex align-items-center" type="button" 
-                                                            id="actionDropdown<?= $order['OrderID'] ?>" data-bs-toggle="dropdown" 
-                                                            aria-expanded="<?= $order === reset($orders) ? 'true' : 'false' ?>"
-                                                            style="min-width: 100px; justify-content: space-between;">
-                                                        <span>Actions</span>
-                                                        <i class="fas fa-caret-down ms-2"></i>
-                                                    </button>
-                                                    <ul class="dropdown-menu show" aria-labelledby="actionDropdown<?= $order['OrderID'] ?>" 
-                                                        style="min-width: 200px; padding: 0.5rem 0; border: 1px solid rgba(0,0,0,.15); border-radius: 0.375rem; box-shadow: 0 0.5rem 1rem rgba(0,0,0,.175);">
-                                                        <li class="px-3 py-1">
-                                                            <h6 class="dropdown-header text-uppercase fw-bold" style="font-size: 0.7rem;">Order #<?= $order['OrderID'] ?></h6>
-                                                        </li>
-                                                        <li><hr class="dropdown-divider my-1"></li>
-                                                        <li>
-                                                            <form method="POST" action="pages/update_status.php" class="d-inline w-100">
-                                                                <input type="hidden" name="order_id" value="<?= $order['OrderID'] ?>">
-                                                                <button type="submit" name="status" value="Approved" class="dropdown-item d-flex align-items-center py-2">
-                                                                    <i class="fas fa-check-circle text-success me-2"></i>
-                                                                    <span>Approve Order</span>
-                                                                    <?php if($order['Status'] === 'Approved'): ?>
-                                                                        <i class="fas fa-check ms-auto text-success"></i>
-                                                                    <?php endif; ?>
-                                                                </button>
-                                                            </form>
-                                                        </li>
-                                                        <li>
-                                                            <form method="POST" action="pages/update_status.php" class="d-inline w-100">
-                                                                <input type="hidden" name="order_id" value="<?= $order['OrderID'] ?>">
-                                                                <button type="submit" name="status" value="Rejected" class="dropdown-item d-flex align-items-center py-2">
-                                                                    <i class="fas fa-times-circle text-danger me-2"></i>
-                                                                    <span>Reject Order</span>
-                                                                    <?php if($order['Status'] === 'Rejected'): ?>
-                                                                        <i class="fas fa-check ms-auto text-danger"></i>
-                                                                    <?php endif; ?>
-                                                                </button>
-                                                            </form>
-                                                        </li>
-                                                        <li><hr class="dropdown-divider my-1"></li>
-                                                        <li>
-                                                            <a href="pages/edit_order.php?order_id=<?= $order['OrderID'] ?>" class="dropdown-item d-flex align-items-center py-2">
-                                                                <i class="fas fa-edit text-primary me-2"></i>
-                                                                <span>Edit Order</span>
-                                                                <i class="fas fa-external-link-alt ms-auto text-muted" style="font-size: 0.7rem;"></i>
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <button class="dropdown-item d-flex align-items-center py-2 text-danger delete-order" data-order-id="<?= $order['OrderID'] ?>">
-                                                                <i class="fas fa-trash-alt me-2"></i>
-                                                                <span>Delete Order</span>
-                                                        </li>
-                                                    </ul>
-                                                </div>
+                                               
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -1049,6 +1000,37 @@ while ($row = $result->fetch_assoc()) {
                         </table>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title text-white" id="orderDetailsModalLabel">Order Details - <span id="modalOrderId"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Customer:</strong> <span id="modalCustomerName"></span></p>
+                <p><strong>Order User:</strong> <span id="modalUserName"></span></p>
+                <p><strong>Date:</strong> <span id="modalOrderDate"></span></p>
+                <p><strong>Status:</strong> <span id="modalOrderStatus" class="badge"></span></p>
+                
+                <h6 class="mt-3">Items:</h6>
+                <ul id="modalOrderItems" class="list-group">
+                    </ul>
+                
+                <h5 class="mt-3 pt-3 border-top"> <span id="modalTotalPrice" class="text-success fw-bold"></span></h5>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <div class="d-flex gap-2">
+                    <button type="button" id="approveOrderBtn" class="btn btn-success btn-sm"><i class="fas fa-check"></i> Approve</button>
+                    <button type="button" id="rejectOrderBtn" class="btn btn-danger btn-sm"><i class="fas fa-times"></i> Reject</button>
+                    <a href="#" id="editOrderLink" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i> Edit</a>
+                </div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -1078,25 +1060,111 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Make order numbers clickable to highlight the row
+    // Get the PHP orders array as a JavaScript object
+    const ordersData = <?= $ordersJson ?? '[]' ?>;
+
+    // --- New: Handle Order Link Click to Show Modal ---
     document.querySelectorAll('.order-link').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            
-            // Remove highlight from all rows
+
+            // Clear any previous highlighting
             document.querySelectorAll('tbody tr').forEach(row => {
                 row.classList.remove('table-primary');
             });
             
-            // Highlight this row
-            this.closest('tr').classList.add('table-primary');
-            
-            // Show a toast or notification
-            showNotification(`Order #${this.getAttribute('data-order-id')} selected`, 'info');
+            // Highlight the current row
+            const currentRow = this.closest('tr');
+            currentRow.classList.add('table-primary');
+
+            const orderId = this.getAttribute('data-order-id');
+            const order = ordersData[orderId];
+
+            if (order) {
+                // Populate Modal Content
+                document.getElementById('modalOrderId').textContent = order.OrderID;
+                document.getElementById('modalCustomerName').textContent = order.CustomerName;
+                document.getElementById('modalUserName').textContent = order.UserName;
+                document.getElementById('modalOrderDate').textContent = new Date(order.AddedDate).toLocaleString();
+                
+                // Status Badge
+                const statusSpan = document.getElementById('modalOrderStatus');
+                statusSpan.textContent = order.Status;
+                statusSpan.className = 'badge'; // Reset classes
+                let badgeClass = 'bg-gradient-info';
+                if (order.Status === 'Approved') badgeClass = 'bg-gradient-success';
+                else if (order.Status === 'Rejected') badgeClass = 'bg-gradient-danger';
+                statusSpan.classList.add('badge-sm', badgeClass);
+
+                // Populate Items List
+                const itemsList = document.getElementById('modalOrderItems');
+                itemsList.innerHTML = '';
+                order.Items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    li.innerHTML = `
+                        <div>
+                            <strong>${item.ProductName}</strong> 
+                            <small class="text-muted">(${item.Quantity} units)</small>
+                        </div>
+                        
+                    `;
+                    itemsList.appendChild(li);
+                });
+                
+                // Update Action Buttons
+                document.getElementById('approveOrderBtn').onclick = () => updateOrderStatus(orderId, 'Approved');
+                document.getElementById('rejectOrderBtn').onclick = () => updateOrderStatus(orderId, 'Rejected');
+                document.getElementById('editOrderLink').href = `pages/edit_order.php?order_id=${orderId}`;
+                document.getElementById('approveOrderBtn').disabled = order.Status === 'Approved';
+                document.getElementById('rejectOrderBtn').disabled = order.Status === 'Rejected';
+
+                // Show the modal using Bootstrap's JavaScript API
+                const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+                modal.show();
+
+            } else {
+                showNotification(`Order #${orderId} details not found.`, 'error');
+            }
         });
     });
 
-    // Handle payment status updates
+    // --- New: Centralized Function to Update Order Status ---
+    function updateOrderStatus(orderId, newStatus) {
+        if (confirm(`Are you sure you want to mark Order #${orderId} as ${newStatus}?`)) {
+            // Disable buttons to prevent double click
+            document.getElementById('approveOrderBtn').disabled = true;
+            document.getElementById('rejectOrderBtn').disabled = true;
+
+            fetch('pages/update_status.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `order_id=${orderId}&status=${newStatus}`
+            })
+            .then(r => r.text())
+            .then(data => {
+                // Check for success condition (assuming 'successfully' is part of a success message or the script returns 1)
+                if (data.includes('successfully') || data.includes('already') || data.trim() === '1') {
+                    showNotification(`Order #${orderId} status updated to ${newStatus}.`, 'success');
+                    // Reload the page after a short delay to reflect changes in the main table
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    showNotification('Error updating status: ' + data, 'error');
+                    document.getElementById('approveOrderBtn').disabled = false;
+                    document.getElementById('rejectOrderBtn').disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('An error occurred during status update.', 'error');
+                document.getElementById('approveOrderBtn').disabled = false;
+                document.getElementById('rejectOrderBtn').disabled = false;
+            });
+        }
+    }
+
+
+    // Handle payment status updates (existing logic)
     document.querySelectorAll('.update-payment').forEach(button => {
         button.addEventListener('click', function () {
             const orderId = this.getAttribute('data-order-id');
@@ -1145,7 +1213,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Handle order deletion
+    // Handle order deletion (existing logic)
     document.querySelectorAll('.delete-order').forEach(button => {
         button.addEventListener('click', function () {
             const orderId = this.getAttribute('data-order-id');
