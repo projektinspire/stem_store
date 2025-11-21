@@ -391,23 +391,23 @@ while ($row = $result->fetch_assoc()) {
                                 <?php if (count($order['Items']) > 1): ?>
                                     <div>
                                         <?= htmlspecialchars($order['Items'][0]['ProductName']) ?> -
-                                        <?= htmlspecialchars($order['Items'][0]['Quantity']) ?> @ Tsh
-                                        <?= number_format($order['Items'][0]['OrderedPrice'], 2) ?>
+                                        <?= htmlspecialchars($order['Items'][0]['Quantity']) ?>
+                                        
                                         <span class="text-primary toggle-items" data-order-id="<?= $order['OrderID'] ?>" style="cursor: pointer; font-weight: bold;">...</span>
                                     </div>
                                     <div id="extra-items-<?= $order['OrderID'] ?>" style="display: none; margin-top: 8px; padding-left: 10px; border-left: 2px solid #eee;">
                                         <?php for ($i = 1; $i < count($order['Items']); $i++): ?>
                                             <div style="margin-bottom: 4px;">
                                                 <?= htmlspecialchars($order['Items'][$i]['ProductName']) ?> -
-                                                <?= htmlspecialchars($order['Items'][$i]['Quantity']) ?> @ Tsh
-                                                <?= number_format($order['Items'][$i]['OrderedPrice'], 2) ?>
+                                                <?= htmlspecialchars($order['Items'][$i]['Quantity']) ?> 
+                                                
                                             </div>
                                         <?php endfor; ?>
                                     </div>
                                 <?php else: ?>
                                     <?= htmlspecialchars($order['Items'][0]['ProductName']) ?> -
-                                    <?= htmlspecialchars($order['Items'][0]['Quantity']) ?> @ Tsh
-                                    <?= number_format($order['Items'][0]['OrderedPrice'], 2) ?>
+                                    <?= htmlspecialchars($order['Items'][0]['Quantity']) ?>
+                                    
                                 <?php endif; ?>
                             </td>                            
                             <td><?= htmlspecialchars($order['AddedDate']) ?></td>
@@ -553,7 +553,7 @@ while ($row = $result->fetch_assoc()) {
 </script>
 
 <script>
-    function generatePDF(orderID, userName, customerName, productName, quantity, price) {
+    function generatePDF(orderID, userName, customerName, productName, quantity) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
@@ -566,8 +566,7 @@ while ($row = $result->fetch_assoc()) {
         doc.text(`Customer Name: ${customerName}`, 10, 40);
         doc.text(`Product Name: ${productName}`, 10, 50);
         doc.text(`Quantity: ${quantity}`, 10, 60);
-        doc.text(`Price per Unit: Tsh ${price}`, 10, 70);
-        doc.text(`Total Price: Tsh ${quantity * price}`, 10, 80);
+        
 
         doc.save(`delivery_note_order_${orderID}.pdf`);
     }

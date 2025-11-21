@@ -31,7 +31,7 @@ if ($stmt->execute()) {
     // Check if any rows were affected
     if ($stmt->affected_rows > 0) {
         // Cart successfully cleared, redirect the user
-        header('Location: ../index2.php'); // Change to your desired redirect page
+        header('Location: Dashboard.php'); // Change to your desired redirect page
         exit;
     } else {
         // No rows affected, meaning the cart was already empty
