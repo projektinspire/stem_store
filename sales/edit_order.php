@@ -6,9 +6,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link rel="apple-touch-icon" sizes="76x76" href="../assets/img/apple-icon.png">
-  <link rel="icon" type="image/png" href="../assets/img/favicon.png">
+  <link rel="icon" type="image/png" href="../assets/img/white.png">
   <title>
-   POS
+STEM STORE
   </title>
   <!--     Fonts and icons     -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
@@ -115,19 +115,19 @@
 
 <body class="g-sidenav-show   bg-gray-100">
   <div class="min-height-300 bg-primary position-absolute w-100"></div>
-  <aside class="sidenav bg-white navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-4 " id="sidenav-main">
+  <aside class="sidenav bg-white navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-4" id="sidenav-main" style="height: 100vh; position: fixed; overflow: hidden;">
     <div class="sidenav-header">
       <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
       <a class="navbar-brand m-0" href=" ../index2.php " target="_blank">
         <img src="../assets/img/logo-ct-dark.png" class="navbar-brand-img h-100" alt="main_logo">
-        <span class="ms-1 font-weight-bold">POS</span>
+        <span class="ms-1 font-weight-bold">STEM STORE</span>
       </a>
     </div>
-    <hr class="horizontal dark mt-0">
-<div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
+   <hr class="horizontal dark mt-0 mb-2">
+  <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main" style="height: calc(100vh - 100px); overflow-y: auto;">
   <ul class="navbar-nav">
     <li class="nav-item">
-      <a class="nav-link" href="dashboard.php">
+      <a class="nav-link active" href="../index2.php">
         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
           <i class="fas fa-tachometer-alt text-primary text-sm opacity-10"></i>
         </div>
@@ -135,37 +135,86 @@
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="">
+      <a class="nav-link" href="sales.php">
         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
           <i class="fas fa-hand-holding-usd text-warning text-sm opacity-10"></i>
         </div>
-        <span class="nav-link-text ms-1">Sales</span>
+        <span class="nav-link-text ms-1">Return Products</span>
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="proformainvoices.php">
+      <a class="nav-link " href="">
         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-          <i class="fas fa-file-invoice-dollar text-success text-sm opacity-10"></i>
+          <i class="fas fa-boxes text-danger text-sm opacity-10"></i>
         </div>
-       <span class="nav-link-text ms-1">Proforma Invoices</span>
+        <span class="nav-link-text ms-1">Manage Products</span>
+      </a>
+    </li>
+    
+   <li class="nav-item">
+      <a class="nav-link" href="addproducts.php">
+        <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+          <i class="fas fa-plus-square text-success text-sm opacity-10"></i>
+        </div>
+        <span class="nav-link-text ms-1">Add Products</span>
       </a>
     </li>
     <li class="nav-item">
-  <a class="nav-link" href="invoices.php">
-    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-      <i class="fas fa-file-invoice text-primary text-sm opacity-10"></i>
-    </div>
-    <span class="nav-link-text ms-1">Invoices</span>
-  </a>
-</li>
-<li class="nav-item">
-  <a class="nav-link" href="customer_report.php">
-    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-      <i class="fas fa-users text-primary text-sm opacity-10"></i>
-    </div>
-    <span class="nav-link-text ms-1">Customer Report</span>
-  </a>
-</li>
+      <a class="nav-link" href="Manageadmin.php">
+        <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+          <i class="fas fa-user-shield text-info text-sm opacity-10"></i>
+        </div>
+        <span class="nav-link-text ms-1">Manage Admin</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="users.php">
+        <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+          <i class="fas fa-users text-info text-sm opacity-10"></i>
+        </div>
+        <span class="nav-link-text ms-1">Manage Users</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="pages/customers.php">
+        <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+          <i class="fas fa-user-friends text-primary text-sm opacity-10"></i>
+        </div>
+        <span class="nav-link-text ms-1">Manage Store keepers</span>
+      </a>
+    </li>
+        <li class="nav-item">
+      <a class="nav-link" href="pages/customers.php">
+        <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+          <i class="fas fa-user-friends text-primary text-sm opacity-10"></i>
+        </div>
+        <span class="nav-link-text ms-1">Manage Store keepers</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="register.php">
+        <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+          <i class="fas fa-user-plus text-success text-sm opacity-10"></i>
+        </div>
+        <span class="nav-link-text ms-1">Register</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="customer_report.php">
+        <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+          <i class="fas fa-chart-bar text-primary text-sm opacity-10"></i>
+        </div>
+        <span class="nav-link-text ms-1">Users Report</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="report.php">
+        <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+          <i class="fas fa-chart-line text-success text-sm opacity-10"></i>
+        </div>
+        <span class="nav-link-text ms-1">Reports</span>
+      </a>
+    </li>
     <li class="nav-item">
       <a class="nav-link" href="profile.php">
         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -177,25 +226,18 @@
     <li class="nav-item">
       <a class="nav-link" href="../pages/login.php">
         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-          <i class="fas fa-user-plus text-info text-sm opacity-10"></i>
+          <i class="fas fa-sign-out-alt text-danger text-sm opacity-10"></i>
         </div>
-        <span class="nav-link-text ms-1">Log Out</span>
+        <span class="nav-link-text ms-1">Logout</span>
       </a>
     </li>
   </ul>
 </div>
-  </aside>
+</aside>
   <main class="main-content position-relative border-radius-lg ">
     <!-- Navbar -->
     <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl " id="navbarBlur" data-scroll="false">
       <div class="container-fluid py-1 px-3">
-        <nav aria-label="breadcrumb">
-          <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
-            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-white" href="javascript:;">Pages</a></li>
-            <li class="breadcrumb-item text-sm text-white active" aria-current="page">Tables</li>
-          </ol>
-          <h6 class="font-weight-bolder text-white mb-0">Tables</h6>
-        </nav>
         <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
           <ul class="navbar-nav  justify-content-end">
             <li class="nav-item d-flex align-items-center">
@@ -267,7 +309,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt->execute();
     }
 
-    echo "<script>alert('Order updated successfully!'); window.location.href='sales.php';</script>";
+    echo "<script>alert('Order updated successfully!'); window.location.href='../index2.php';</script>";
 }
 ?>
 
@@ -350,7 +392,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <button type="submit" class="btn btn-dark w-100 my-4">Update Order</button>
                             </div>
                             <div class="text-center">
-                                <a href="sales.php" class="btn btn-light w-100 my-2">Cancel</a>
+                                <a href="../index2.php" class="btn btn-light w-100 my-2">Cancel</a>
                             </div>
                         </form>
                     </div>
@@ -362,7 +404,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </html>
 
 
-      <footer class="footer pt-3  ">
+      <!-- <footer class="footer pt-3  ">
         <div class="container-fluid">
           <div class="row align-items-center justify-content-lg-between">
             <div class="col-lg-6 mb-lg-0 mb-4">
@@ -376,7 +418,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
           </div>
         </div>
-      </footer>
+      </footer> -->
     </div>
   </main>
   <div class="fixed-plugin">
