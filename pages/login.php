@@ -61,7 +61,7 @@
     }
 
     .card-header .logo-img { /* Style the moved image */
-      width: 200px;
+      width: 180px;
       height: 100px;
       margin-bottom: 1px;
     }
@@ -151,7 +151,7 @@
     }
 
     .btn-login {
-      width: 100%;
+      width: 40%;
       padding: 10px;
       background-color: var(--primary-color);
       color: white;
