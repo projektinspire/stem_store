@@ -55,15 +55,15 @@
     .card-header {
       background-color: #ffffff
       color: black;
-      padding: 20px 0 15px 0; /* Adjusted padding to fit all elements */
+      padding: 0px 0 0px 0; /* Adjusted padding to fit all elements */
       border-top-left-radius: 12px;
       border-top-right-radius: 12px;
     }
 
     .card-header .logo-img { /* Style the moved image */
-      width: 60px;
-      height: 60px;
-      margin-bottom: 10px;
+      width: 180px;
+      height: 100px;
+      margin-bottom: 1px;
     }
 
     .card-header h1 {
@@ -80,7 +80,7 @@
     }
 
     .card-body {
-      padding: 30px;
+      padding: 10px;
     }
 
     .input-group {
@@ -151,8 +151,8 @@
     }
 
     .btn-login {
-      width: 100%;
-      padding: 12px;
+      width: 40%;
+      padding: 10px;
       background-color: var(--primary-color);
       color: white;
       border: none;
